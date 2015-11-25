@@ -1,0 +1,58 @@
+cmake_minimum_required(VERSION 3.1.0)
+project(gfx)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+if(NOT WIN32) 
+  set(CMAKE_MODULE_PATH /usr/local/lib/cmake /usr/local/lib/x86_64-linux-gnu/cmake)
+  set(CMAKE_PREFIX_PATH /usr/local/lib/cmake/glfw)
+endif(NOT WIN32)
+
+find_package(PkgConfig REQUIRED)
+find_package(OpenGL REQUIRED)
+
+if(WIN32)
+  include_directories("C:/GLFW/include" "C:/glm" "C:/glew/include")
+  link_directories("C:/glew/lib/Release/x64" "C:/GLFW/lib-mingw")
+else(WIN32)
+  find_package(glfw3 REQUIRED)
+  find_package(GLM REQUIRED)
+  find_package(GLEW REQUIRED STATIC)
+endif(WIN32)
+
+if(APPLE)
+  include_directories(/usr/local/include)
+  find_library(COCOA_LIBRARY Cocoa REQUIRED)
+  find_library(IOKIT_LIBRARY IOKit REQUIRED)
+  find_library(COREVID_LIBRARY CoreVideo REQUIRED)
+endif(APPLE)
+
+file(GLOB SOURCES "*.cpp")
+
+add_executable(${PROJECT_NAME} ${SOURCES})
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_range_for)
+set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
+
+target_link_libraries(${PROJECT_NAME} 
+	${GLFW3_LIBRARY} 
+	${OPENGL_LIBRARIES}
+	${GLEW_LIBRARY} 
+	${COCOA_LIBRARY} 
+	${COREVID_LIBRARY}
+	${IOKIT_LIBRARY})
+
+if(WIN32)
+target_link_libraries(${PROJECT_NAME} 
+	${OPENGL_LIBRARIES} 
+	glfw3 
+	glew32s
+	glu32
+	opengl32)
+endif(WIN32)
+
+if(UNIX)
+target_link_libraries(${PROJECT_NAME}
+	${OPENGL_LIBRARIES}
+	${GLFW3_LIBRARY}
+	${GLEW_LIBRARY}
+	pthread)
+endif(UNIX)
