@@ -11,12 +11,12 @@ find_package(PkgConfig REQUIRED)
 find_package(OpenGL REQUIRED)
 
 if(WIN32)
-  include_directories("C:/GLFW/include" "C:/glm" "C:/glew/include")
-  link_directories("C:/glew/lib/Release/x64" "C:/GLFW/lib-mingw")
+  include_directories("lib/glfw/include" "lib/glm" "lib/glew/include")
+  link_directories("lib/glew/lib/Release/x64" "lib/glfw/lib-mingw-w64")
 else(WIN32)
   find_package(glfw3 REQUIRED)
   find_package(GLM REQUIRED)
-  find_package(GLEW REQUIRED STATIC)
+  find_package(GLEW REQUIRED )
 endif(WIN32)
 
 if(APPLE)
@@ -41,7 +41,7 @@ target_link_libraries(${PROJECT_NAME}
 	${IOKIT_LIBRARY})
 
 if(WIN32)
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME}
 	${OPENGL_LIBRARIES} 
 	glfw3 
 	glew32s
