@@ -12,6 +12,8 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "logger.h"
+
 using std::string;
 using std::shared_ptr;
 

@@ -12,12 +12,15 @@
 #include <memory>
 #include <vector>
 #include <cstring>
+#include <cassert>
 #include <sstream>
 #include <iomanip>
 #include <iostream>
 #include <algorithm>
 
 #include "macros.h"
+#include "utility.h"
+#include "log_stream.h"
 
 using std::setw;
 using std::time;
@@ -44,27 +47,18 @@ namespace gfx {
         fatal = 5
     };
 
-    class logger;
-
-    typedef shared_ptr<logger> plogger;
-    typedef shared_ptr<ostream> postream;
-
     class logger {
 
     public:
 
         logger();
-        logger(const string & tag);
         ~logger();
 
         log_level level();
         void level(log_level level);
 
-        void tag(const string & tag);
-        string tag();
-
-        void add(postream stream);
-        void remove(postream stream);
+        void add(plog_stream stream);
+        void remove(plog_stream stream);
 
         void log(const string & level, const string & file, int line, const string & func, const string & message);
 
@@ -73,10 +67,12 @@ namespace gfx {
         string m_tag;
         mutex m_mutex;
         log_level m_loglevel;
-        vector<postream> m_streams;
+        vector<plog_stream> m_streams;
         static mutex gmtime_mutex;
 
     };
+
+    typedef shared_ptr<logger> plogger;
 
 #define LOGT(logger, msg) \
     { \

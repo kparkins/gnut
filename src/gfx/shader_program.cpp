@@ -20,7 +20,6 @@ gfx::shader_program& gfx::shader_program::attach(GLuint type, const string & sha
     glCompileShader(id);
     glGetShaderiv(id, GL_COMPILE_STATUS, &success);
     if(!success) {
-        //TODO a robust logger
     }
     return *this;
 }

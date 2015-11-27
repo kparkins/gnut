@@ -11,7 +11,7 @@ find_package(PkgConfig REQUIRED)
 find_package(OpenGL REQUIRED)
 
 if(WIN32)
-  include_directories("lib/glfw/include" "lib/glm" "lib/glew/include")
+  include_directories("lib/glfw/include" "lib/glm" "lib/glew/include" )
   link_directories("lib/glew/lib/Release/x64" "lib/glfw/lib-mingw-w64")
 else(WIN32)
   find_package(glfw3 REQUIRED)
@@ -20,12 +20,13 @@ else(WIN32)
 endif(WIN32)
 
 if(APPLE)
-  include_directories(/usr/local/include)
+  include_directories("/usr/local/include")
   find_library(COCOA_LIBRARY Cocoa REQUIRED)
   find_library(IOKIT_LIBRARY IOKit REQUIRED)
   find_library(COREVID_LIBRARY CoreVideo REQUIRED)
 endif(APPLE)
 
+include_directories("src/gfx" "src/util" "src/net" "src/")
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES})
