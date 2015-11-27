@@ -7,9 +7,11 @@
 
 #include <ctime>
 #include <mutex>
+#include <thread>
 #include <string>
 #include <memory>
 #include <vector>
+#include <cstring>
 #include <sstream>
 #include <iomanip>
 #include <iostream>
@@ -29,6 +31,8 @@ using std::remove_if;
 using std::shared_ptr;
 using std::lock_guard;
 using std::stringstream;
+
+
 
 namespace gfx {
     enum log_level {
@@ -73,13 +77,48 @@ namespace gfx {
         static mutex gmtime_mutex;
 
     };
-/*
+
 #define LOGT(logger, msg) \
     { \
-        if(logger->level() >= log_level::trace) {
-            logger->log("[Trace]")
-        }
-    }*/
+        if(logger->level() <= gfx::log_level::trace) { \
+            logger->log("Trace", __FILENAME__, __LINE__, __FUNCTION__, msg); \
+        } \
+    }\
+
+#define LOGI(logger, msg) \
+    { \
+        if(logger->level() <= gfx::log_level::info) { \
+            logger->log("Info", __FILENAME__, __LINE__, __FUNCTION__, msg); \
+        } \
+    }\
+
+#define LOGD(logger, msg) \
+    { \
+        if(logger->level() <= gfx::log_level::debug) { \
+            logger->log("Debug", __FILENAME__, __LINE__, __FUNCTION__, msg); \
+        } \
+    }\
+
+#define LOGW(logger, msg) \
+    { \
+        if(logger->level() <= gfx::log_level::warning) { \
+            logger->log("Warning", __FILENAME__, __LINE__, __FUNCTION__, msg); \
+        } \
+    }\
+
+#define LOGE(logger, msg) \
+    { \
+        if(logger->level() <= gfx::log_level::error) { \
+            logger->log("Error", __FILENAME__, __LINE__, __FUNCTION__, msg); \
+        } \
+    }\
+
+#define LOGF(logger, msg) \
+    { \
+        if(logger->level() <= gfx::log_level::fatal) { \
+            logger->log("Fatal", __FILENAME__, __LINE__, __FUNCTION__, msg); \
+        } \
+    }\
 
 }
 #endif //GFX_LOGGER_H

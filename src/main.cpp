@@ -52,7 +52,9 @@ int main(int argc, char* argv[]) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
     GLFWwindow* main_window = glfwCreateWindow(640, 480, "gfx", NULL, NULL);
 
     if(!main_window) {
@@ -142,7 +144,6 @@ int main(int argc, char* argv[]) {
         glPopMatrix();
 
         glfwSwapBuffers(main_window);
-        logger->log("Trace", __FILE__, __LINE__, __FUNCTION__, "Hello");
     }
 
     glDeleteVertexArrays(1, &vao);

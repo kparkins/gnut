@@ -8,7 +8,7 @@
 mutex gfx::logger::gmtime_mutex;
 
 gfx::logger::logger() {
-
+    m_loglevel = log_level::warning;
 }
 
 gfx::logger::logger(const string & tag) {
@@ -48,22 +48,22 @@ string gfx::logger::tag() {
 }
 
 void gfx::logger::log(const string & level, const string & file, int line, const string & func, const string & message) {
-   // lock_guard<mutex> lock(m_mutex);
-    //stringstream sstream;
-    // time -- level -- tag -- file -- line -- func -- threadId -- message
+    lock_guard<mutex> lock(m_mutex);
+    stringstream sstream;
+    // threadid -- time --- file -- line -- level -- message
     {
-     //   lock_guard<mutex> lock(gmtime_mutex);
-        //time_t tnow = time(NULL);
-        //tm* tm = gmtime(&tnow);
-        /*sstream << setfill('0') << setw(2) << (tm->tm_mon  + 1) << "/"
+        lock_guard<mutex> gmlock(gmtime_mutex);
+        time_t tnow = time(NULL);
+        tm* tm = gmtime(&tnow);
+
+        sstream << "[" << setfill(' ') << setw(14) << std::this_thread::get_id() << "] "
+                << setfill('0') << setw(2) << (tm->tm_mon  + 1) << "/"
                 << setfill('0') << setw(2) << tm->tm_wday << "/"
                 << setfill('0') << setw(4) << tm->tm_year + 1900 << " "
                 << setfill('0') << setw(2) << tm->tm_hour << ":"
                 << setfill('0') << setw(2) << tm->tm_min << ":"
-                << setfill('0') << setw(2) << tm->tm_sec << " ";
-                */
+                << setfill('0') << setw(2) << tm->tm_sec << "  ";
     }
-
-   // sstream << message << "\n";
-    std::cout << message << std::endl;
+    sstream << file << "(" << line << ")" << " " << level << " ~ " << message;
+    std::cout << sstream.str() << std::endl;
 }
