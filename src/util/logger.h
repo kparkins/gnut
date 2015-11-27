@@ -2,8 +2,8 @@
 // Created by Kyle on 11/25/2015.
 //
 
-#ifndef GFX_LOGGER_H
-#define GFX_LOGGER_H
+#ifndef GNUT_LOGGER_H
+#define GNUT_LOGGER_H
 
 #include <ctime>
 #include <mutex>
@@ -37,7 +37,7 @@ using std::stringstream;
 
 
 
-namespace gfx {
+namespace gnut {
     enum log_level {
         trace = 0,
         info = 1,
@@ -76,45 +76,45 @@ namespace gfx {
 
 #define LOGT(logger, msg) \
     { \
-        if(logger->level() <= gfx::log_level::trace) { \
+        if(logger->level() <= gnut::log_level::trace) { \
             logger->log("Trace", __FILENAME__, __LINE__, __FUNCTION__, msg); \
         } \
     }\
 
 #define LOGI(logger, msg) \
     { \
-        if(logger->level() <= gfx::log_level::info) { \
+        if(logger->level() <= gnut::log_level::info) { \
             logger->log("Info", __FILENAME__, __LINE__, __FUNCTION__, msg); \
         } \
     }\
 
 #define LOGD(logger, msg) \
     { \
-        if(logger->level() <= gfx::log_level::debug) { \
+        if(logger->level() <= gnut::log_level::debug) { \
             logger->log("Debug", __FILENAME__, __LINE__, __FUNCTION__, msg); \
         } \
     }\
 
 #define LOGW(logger, msg) \
     { \
-        if(logger->level() <= gfx::log_level::warning) { \
+        if(logger->level() <= gnut::log_level::warning) { \
             logger->log("Warning", __FILENAME__, __LINE__, __FUNCTION__, msg); \
         } \
     }\
 
 #define LOGE(logger, msg) \
     { \
-        if(logger->level() <= gfx::log_level::error) { \
+        if(logger->level() <= gnut::log_level::error) { \
             logger->log("Error", __FILENAME__, __LINE__, __FUNCTION__, msg); \
         } \
     }\
 
 #define LOGF(logger, msg) \
     { \
-        if(logger->level() <= gfx::log_level::fatal) { \
+        if(logger->level() <= gnut::log_level::fatal) { \
             logger->log("Fatal", __FILENAME__, __LINE__, __FUNCTION__, msg); \
         } \
     }\
 
 }
-#endif //GFX_LOGGER_H
+#endif //GNUT_LOGGER_H

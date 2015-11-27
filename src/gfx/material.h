@@ -1,5 +1,5 @@
-#ifndef GFX_MATERIAL_H
-#define GFX_MATERIAL_H
+#ifndef GNUT_MATERIAL_H
+#define GNUT_MATERIAL_H
 
 #include <iostream>
 #define GLEW_STATIC
@@ -7,7 +7,7 @@
 
 #include "color.h"
 
-namespace gfx {
+namespace gnut {
 
     typedef struct material {
         color ambient;

@@ -1,6 +1,6 @@
 #include "material.h"
 
-void gfx::apply(material mat) {
+void gnut::apply(material mat) {
     glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat.emissive.ptr());
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat.specular.ptr());
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat.diffuse.ptr());

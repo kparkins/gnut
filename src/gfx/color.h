@@ -1,12 +1,12 @@
-#ifndef GFX_COLOR_H
-#define GFX_COLOR_H
+#ifndef GNUT_COLOR_H
+#define GNUT_COLOR_H
 
 #include <iostream>
 #include <string.h>
 
 #include "macros.h"
 
-namespace gfx {
+namespace gnut {
     class color {
 
     public:

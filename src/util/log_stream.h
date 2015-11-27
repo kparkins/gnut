@@ -2,8 +2,8 @@
 // Created by Kyle on 11/26/2015.
 //
 
-#ifndef GFX_LOG_STREAM_H
-#define GFX_LOG_STREAM_H
+#ifndef GNUT_LOG_STREAM_H
+#define GNUT_LOG_STREAM_H
 
 #include <string>
 #include <memory>
@@ -11,7 +11,7 @@
 using std::string;
 using std::shared_ptr;
 
-namespace gfx {
+namespace gnut {
     class log_stream {
 
     public:
@@ -23,4 +23,4 @@ namespace gfx {
 
     typedef shared_ptr<log_stream> plog_stream;
 }
-#endif //GFX_LOG_STREAM_H
+#endif //GNUT_LOG_STREAM_H

@@ -2,8 +2,8 @@
 // Created by Kyle on 11/26/2015.
 //
 
-#ifndef GFX_CONSOLE_STREAM_H
-#define GFX_CONSOLE_STREAM_H
+#ifndef GNUT_CONSOLE_STREAM_H
+#define GNUT_CONSOLE_STREAM_H
 
 #include <mutex>
 #include <iostream>
@@ -14,7 +14,7 @@ using std::cout;
 using std::mutex;
 using std::lock_guard;
 
-namespace gfx {
+namespace gnut {
     class console_stream : public log_stream {
 
     public:
@@ -31,4 +31,4 @@ namespace gfx {
     };
 }
 
-#endif //GFX_CONSOLE_STREAM_H
+#endif //GNUT_CONSOLE_STREAM_H

@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-
+#include <glm/gtc/matrix_transform.hpp>
 #include "logger.h"
 #include "console_stream.h"
 
@@ -55,13 +55,12 @@ int main(int argc, char* argv[]) {
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow* main_window = glfwCreateWindow(640, 480, "gfx", NULL, NULL);
+    GLFWwindow* main_window = glfwCreateWindow(640, 480, "gnut", NULL, NULL);
 
     if(!main_window) {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
-
     // set the opengl context
     glfwMakeContextCurrent(main_window);
 
@@ -125,10 +124,10 @@ int main(int argc, char* argv[]) {
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
-    gfx::plogger logger = std::make_shared<gfx::logger>();
-    gfx::plog_stream console = std::make_shared<gfx::console_stream>();
+    gnut::plogger logger = std::make_shared<gnut::logger>();
+    gnut::plog_stream console = std::make_shared<gnut::console_stream>();
     logger->add(console);
-    logger->level(gfx::log_level::error);
+    logger->level(gnut::log_level::error);
 
     // main loop
     while(!glfwWindowShouldClose(main_window)) {
@@ -145,6 +144,7 @@ int main(int argc, char* argv[]) {
         glBindVertexArray(0);
 
         LOGF(logger, "a log message");
+
         glPopMatrix();
         glfwSwapBuffers(main_window);
     }
@@ -156,5 +156,6 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
 
 

@@ -2,8 +2,8 @@
 // Created by Kyle on 11/25/2015.
 //
 
-#ifndef GFX_SHADER_PROGRAM_H
-#define GFX_SHADER_PROGRAM_H
+#ifndef GNUT_SHADER_PROGRAM_H
+#define GNUT_SHADER_PROGRAM_H
 
 #include <string>
 #include <memory>
@@ -17,7 +17,7 @@
 using std::string;
 using std::shared_ptr;
 
-namespace gfx {
+namespace gnut {
     class shader_program {
 
     public:
@@ -43,4 +43,4 @@ namespace gfx {
 
     typedef shared_ptr<shader_program> pshader_program;
 }
-#endif //GFX_SHADER_PROGRAM_H
+#endif //GNUT_SHADER_PROGRAM_H
