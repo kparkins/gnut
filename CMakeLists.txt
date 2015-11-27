@@ -16,7 +16,7 @@ if(WIN32)
 else(WIN32)
   find_package(glfw3 REQUIRED)
   find_package(GLM REQUIRED)
-  find_package(GLEW REQUIRED )
+  find_package(GLEW REQUIRED)
 endif(WIN32)
 
 if(APPLE)
@@ -26,7 +26,7 @@ if(APPLE)
   find_library(COREVID_LIBRARY CoreVideo REQUIRED)
 endif(APPLE)
 
-file(GLOB SOURCES "*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_range_for)

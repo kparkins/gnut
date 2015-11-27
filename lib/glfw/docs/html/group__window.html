@@ -167,7 +167,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:gaeac25e64789974ccbe0811766bd91a16"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the monitor that the window uses for full screen mode.  <a href="#gaeac25e64789974ccbe0811766bd91a16">More...</a><br /></td></tr>
 <tr class="separator:gaeac25e64789974ccbe0811766bd91a16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacccb29947ea4b16860ebef42c2cb9337"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__window.html#gacccb29947ea4b16860ebef42c2cb9337">glfwGetWindowAttrib</a> (<a class="el" href="group__window.html#ga3c96d80d363e67d13a41b5d1821f3242">GLFWwindow</a> *window, int attrib)</td></tr>
-<tr class="memdesc:gacccb29947ea4b16860ebef42c2cb9337"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns an attribute of the specified window.  <a href="#gacccb29947ea4b16860ebef42c2cb9337">More...</a><br /></td></tr>
+<tr class="memdesc:gacccb29947ea4b16860ebef42c2cb9337"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns an get_attribute of the specified window.  <a href="#gacccb29947ea4b16860ebef42c2cb9337">More...</a><br /></td></tr>
 <tr class="separator:gacccb29947ea4b16860ebef42c2cb9337"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3d2fc6026e690ab31a13f78bc9fd3651"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__window.html#ga3d2fc6026e690ab31a13f78bc9fd3651">glfwSetWindowUserPointer</a> (<a class="el" href="group__window.html#ga3c96d80d363e67d13a41b5d1821f3242">GLFWwindow</a> *window, void *pointer)</td></tr>
 <tr class="memdesc:ga3d2fc6026e690ab31a13f78bc9fd3651"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the user pointer of the specified window.  <a href="#ga3d2fc6026e690ab31a13f78bc9fd3651">More...</a><br /></td></tr>
@@ -584,15 +584,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>This function returns the value of an attribute of the specified window or its OpenGL or OpenGL ES context.</p>
+<p>This function returns the value of an get_attribute of the specified window or its OpenGL or OpenGL ES context.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">window</td><td>The window to query. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">attrib</td><td>The <a class="el" href="window.html#window_attribs">window attribute</a> whose value to return. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">attrib</td><td>The <a class="el" href="window.html#window_attribs">window get_attribute</a> whose value to return. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The value of the attribute, or zero if an <a class="el" href="intro.html#error_handling">error</a> occurred.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The value of the get_attribute, or zero if an <a class="el" href="intro.html#error_handling">error</a> occurred.</dd></dl>
 <dl class="section remark"><dt>Remarks</dt><dd>Framebuffer related hints are not window attributes. See <a class="el" href="window.html#window_attribs_fb">Framebuffer related attributes</a> for more information.</dd>
 <dd>
 Zero is a valid value for many window and context related attributes so you cannot use a return value of zero as an indication of errors. However, this function should not fail as long as it is passed valid arguments and the library has been <a class="el" href="intro.html#intro_init">initialized</a>.</dd></dl>
