@@ -20,4 +20,4 @@
     #define ALIGN_16 __attribute__ ((aligned(16)))
 #endif
 
-#endif /* Macros_h */
+#endif /* GNUT_MACROS_H */

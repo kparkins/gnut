@@ -26,7 +26,7 @@ if(APPLE)
   find_library(COREVID_LIBRARY CoreVideo REQUIRED)
 endif(APPLE)
 
-include_directories("src/gfx" "src/util" "src/net" "src/")
+include_directories("src/gfx" "src/util" "src/net" "src/" "src/tools" "src/tools/log" "src/tools/script")
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES})

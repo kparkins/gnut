@@ -7,6 +7,7 @@
 
 #include <string>
 #include <memory>
+#include <sstream>
 
 using std::string;
 using std::shared_ptr;

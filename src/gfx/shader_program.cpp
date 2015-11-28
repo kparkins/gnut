@@ -20,6 +20,7 @@ gnut::shader_program& gnut::shader_program::attach(GLuint type, const string & s
     glCompileShader(id);
     glGetShaderiv(id, GL_COMPILE_STATUS, &success);
     if(!success) {
+        LOGE(::logger, "Shader compile error : " << "");
     }
     return *this;
 }

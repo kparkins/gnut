@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+
 #include "logger.h"
 #include "console_stream.h"
 
@@ -43,6 +43,10 @@ const GLchar* frag_shader = "#version 330 core\n"
                           "}";
 
 int main(int argc, char* argv[]) {
+    gnut::plog_stream console = std::make_shared<gnut::console_stream>();
+    ::logger->level(gnut::log_level::warning);
+    ::logger->add(console);
+
     glfwSetErrorCallback(errorCallback);
     if(!glfwInit()) {
         exit(EXIT_FAILURE);
@@ -124,10 +128,6 @@ int main(int argc, char* argv[]) {
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
-    gnut::plogger logger = std::make_shared<gnut::logger>();
-    gnut::plog_stream console = std::make_shared<gnut::console_stream>();
-    logger->add(console);
-    logger->level(gnut::log_level::error);
 
     // main loop
     while(!glfwWindowShouldClose(main_window)) {
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
 
-        LOGF(logger, "a log message");
+        LOGE(logger, "test" << "tes2" << 1 << 2 << " :) ");
 
         glPopMatrix();
         glfwSwapBuffers(main_window);
