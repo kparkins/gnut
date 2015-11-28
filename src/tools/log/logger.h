@@ -20,7 +20,7 @@
 
 #include "macros.h"
 #include "utility.h"
-#include "log_stream.h"
+#include "log.h"
 
 using std::setw;
 using std::left;
@@ -39,44 +39,45 @@ using std::make_shared;
 using std::stringstream;
 
 namespace gnut {
-    enum log_level {
-        trace = 5,
-        info = 4,
-        debug = 3,
-        warning = 2,
-        error = 1,
-        fatal = 0
-    };
+    namespace log{
+            enum log_level {
+                trace = 5,
+                info = 4,
+                debug = 3,
+                warning = 2,
+                error = 1,
+                fatal = 0
+            };
 
-    class logger {
+            class logger {
 
-    public:
+                public:
 
-        logger();
-        ~logger();
+                logger();
+                ~logger();
 
-        log_level level();
-        void level(log_level level);
+                log_level level();
+                void level(log_level level);
 
-        void add(plog_stream stream);
-        void remove(plog_stream stream);
+                void add(plog stream);
+                void remove(plog stream);
 
-        void log(const string & message);
+                void log(const string &message);
 
-    private:
+                private:
 
-        string m_tag;
-        mutex m_mutex;
-        log_level m_loglevel;
-        vector<plog_stream> m_streams;
+                string m_tag;
+                mutex m_mutex;
+                log_level m_loglevel;
+                vector<plog> m_streams;
 
-    };
+            };
 
-    typedef shared_ptr<logger> plogger;
+            typedef shared_ptr<logger> plogger;
 
 #define LOGT(logger, msg) \
     { \
-        if(logger->level() >= gnut::log_level::trace) { \
+        if(logger->level() >= gnut::log::log_level::trace) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
@@ -88,7 +89,7 @@ namespace gnut {
 
 #define LOGI(logger, msg) \
     { \
-        if(logger->level() >= gnut::log_level::info) { \
+        if(logger->level() >= gnut::log::log_level::info) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
@@ -100,7 +101,7 @@ namespace gnut {
 
 #define LOGD(logger, msg) \
     { \
-        if(logger->level() >= gnut::log_level::debug) { \
+        if(logger->level() >= gnut::log::log_level::debug) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
@@ -112,7 +113,7 @@ namespace gnut {
 
 #define LOGW(logger, msg) \
     { \
-        if(logger->level() >= gnut::log_level::warning) { \
+        if(logger->level() >= gnut::log::log_level::warning) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
@@ -124,7 +125,7 @@ namespace gnut {
 
 #define LOGE(logger, msg) \
     { \
-        if(logger->level() >= gnut::log_level::error) { \
+        if(logger->level() >= gnut::log::log_level::error) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
@@ -136,7 +137,7 @@ namespace gnut {
 
 #define LOGF(logger, msg) \
     { \
-        if(logger->level() >= gnut::log_level::fatal) { \
+        if(logger->level() >= gnut::log::log_level::fatal) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
@@ -146,9 +147,10 @@ namespace gnut {
         } \
     }\
 
+    }
 }
 
 // global logger
-extern gnut::plogger logger;
+extern gnut::log::plogger logger;
 
 #endif //GNUT_LOGGER_H

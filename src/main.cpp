@@ -6,11 +6,13 @@
 #include <glm/glm.hpp>
 
 #include "logger.h"
-#include "console_stream.h"
+#include "console.h"
 
 using std::cout;
 using std::endl;
 using std::cerr;
+using namespace gnut;
+
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -43,8 +45,8 @@ const GLchar* frag_shader = "#version 330 core\n"
                           "}";
 
 int main(int argc, char* argv[]) {
-    gnut::plog_stream console = std::make_shared<gnut::console_stream>();
-    ::logger->level(gnut::log_level::warning);
+    log::plog console = std::make_shared<log::console>();
+    ::logger->level(log::log_level::warning);
     ::logger->add(console);
 
     glfwSetErrorCallback(errorCallback);
@@ -143,7 +145,7 @@ int main(int argc, char* argv[]) {
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
 
-        LOGE(logger, "test" << "tes2" << 1 << 2 << " :) ");
+        LOGE(logger, "test " << " tes2 " << 1 << 2 << " :) ");
 
         glPopMatrix();
         glfwSwapBuffers(main_window);
