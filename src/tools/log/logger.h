@@ -40,7 +40,7 @@ using std::stringstream;
 
 namespace gnut {
     namespace log{
-            enum log_level {
+            enum level {
                 trace = 5,
                 info = 4,
                 debug = 3,
@@ -55,8 +55,8 @@ namespace gnut {
                 logger();
                 ~logger();
 
-                log_level level();
-                void level(log_level level);
+                level log_level();
+                void log_level(level level);
 
                 void add(plog stream);
                 void remove(plog stream);
@@ -67,7 +67,7 @@ namespace gnut {
 
                 string m_tag;
                 mutex m_mutex;
-                log_level m_loglevel;
+                level m_loglevel;
                 vector<plog> m_streams;
 
             };
@@ -76,7 +76,7 @@ namespace gnut {
 
 #define LOGT(logger, msg) \
     { \
-        if(logger->level() >= gnut::log::log_level::trace) { \
+        if(logger->log_level() >= gnut::log::level::trace) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
@@ -88,7 +88,7 @@ namespace gnut {
 
 #define LOGI(logger, msg) \
     { \
-        if(logger->level() >= gnut::log::log_level::info) { \
+        if(logger->log_level() >= gnut::log::level::info) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
@@ -100,7 +100,7 @@ namespace gnut {
 
 #define LOGD(logger, msg) \
     { \
-        if(logger->level() >= gnut::log::log_level::debug) { \
+        if(logger->log_level() >= gnut::log::level::debug) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
@@ -112,7 +112,7 @@ namespace gnut {
 
 #define LOGW(logger, msg) \
     { \
-        if(logger->level() >= gnut::log::log_level::warning) { \
+        if(logger->log_level() >= gnut::log::level::warning) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
@@ -124,7 +124,7 @@ namespace gnut {
 
 #define LOGE(logger, msg) \
     { \
-        if(logger->level() >= gnut::log::log_level::error) { \
+        if(logger->log_level() >= gnut::log::level::error) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
@@ -136,7 +136,7 @@ namespace gnut {
 
 #define LOGF(logger, msg) \
     { \
-        if(logger->level() >= gnut::log::log_level::fatal) { \
+        if(logger->log_level() >= gnut::log::level::fatal) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \

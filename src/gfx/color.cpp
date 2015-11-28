@@ -3,52 +3,43 @@
 #define clampf(min,max,num) (num < min ? min : num > max ? max : num)
 
 
-gnut::color::color() {
-    m_u8bit = 0xFF;
+gnut::gfx::color::color() {
     memset(static_cast<void*>(&r), 1.f, sizeof(float) * 4);
 }
 
-gnut::color::color(float r, float g, float b) {
-    m_u8bit = 0xFF;
+gnut::gfx::color::color(float r, float g, float b) {
     memset(static_cast<void*>(&r), 1.f, sizeof(float) * 4);
     a = 1.f;
 }
 
-gnut::color::color(float r, float g, float b, float a) {
-    m_u8bit = 0xFF;
+gnut::gfx::color::color(float r, float g, float b, float a) {
     this->r = r;
     this->g = g;
     this->b = b;
     this->a = a;
 }
 
-gnut::color::color(unsigned int hex) {
-    m_u8bit = 0xFF;
-    //construct a bit mask 0xff000000
+gnut::gfx::color::color(unsigned int hex) {
     unsigned int mask = 0xff << 0x18;
     
-    //Unpack each 8bit segment into a float, and normalize such that 255 ~= 1.0
     for(int i = 0; mask; ++i, mask >>= 0x8) {
-        (&r)[i] = ((float) ((hex & mask) >> ((3 - i) * 0x8))) / m_u8bit;
+        (&r)[i] = ((float) ((hex & mask) >> ((3 - i) * 0x8))) / 0xFF;
     }
 }
 
-gnut::color::~color() {
-    //Delete any dynamically allocated memory/objects here
+gnut::gfx::color::~color() {
+
 }
 
-
-float* gnut::color::ptr() {
-    //Returns a pointer to the m_color array
+float* gnut::gfx::color::data() {
     return &r;
 }
 
-float& gnut::color::operator [] (int i) {
-    //Returns a reference to the specified element
+float& gnut::gfx::color::operator [] (int i) {
     return (&r)[i];
 }
 
-gnut::color gnut::color::interpolate(gnut::color & c1, float t) {
+gnut::gfx::color gnut::gfx::color::interpolate(color & c1, float t) {
     t = static_cast<float>(clampf(0.0, 1.0, t));
     return color((1.f - t) * r + t * c1[0],
                  (1.f - t) * g + t * c1[1],
@@ -56,43 +47,43 @@ gnut::color gnut::color::interpolate(gnut::color & c1, float t) {
                  (1.f - t) * a + t * c1[3]);
 }
 
-gnut::color gnut::color::red() {
+gnut::gfx::color gnut::gfx::color::red() {
     return color(0xff0000ff);
 }
 
-gnut::color gnut::color::blue() {
+gnut::gfx::color gnut::gfx::color::blue() {
     return color(0x0000ffff);
 }
 
-gnut::color gnut::color::green() {
+gnut::gfx::color gnut::gfx::color::green() {
     return color(0x00ff00ff);
 }
 
-gnut::color gnut::color::yellow() {
+gnut::gfx::color gnut::gfx::color::yellow() {
     return color(0xffff00ff);
 }
 
-gnut::color gnut::color::orange() {
+gnut::gfx::color gnut::gfx::color::orange() {
     return color(0xff8800ff);
 }
 
-gnut::color gnut::color::purple() {
+gnut::gfx::color gnut::gfx::color::purple() {
     return color(0xff00ffff);
 }
 
-gnut::color gnut::color::white() {
+gnut::gfx::color gnut::gfx::color::white() {
     return color(0xffffffff);
 }
 
-gnut::color gnut::color::black() {
+gnut::gfx::color gnut::gfx::color::black() {
     return color(0x00000000);
 }
 
-gnut::color gnut::color::light_brown() {
+gnut::gfx::color gnut::gfx::color::light_brown() {
     return color(0xFFCCAAFF);
 }
 
-gnut::color gnut::color::random_pastel() {
+gnut::gfx::color gnut::gfx::color::random_pastel() {
     unsigned int c =
         ((0x50 + (static_cast<unsigned int>(rand()) % 128)) << 0x18) +
         ((0x50 + (static_cast<unsigned int>(rand()) % 128)) << 0x10) +
@@ -102,7 +93,7 @@ gnut::color gnut::color::random_pastel() {
     return color(c);
 }
 
-gnut::color gnut::color::dark_pastel() {
+gnut::gfx::color gnut::gfx::color::dark_pastel() {
     unsigned int c =
         ((0x10 + (static_cast<unsigned int>(rand()) % 128)) << 0x18) +
         ((0x10 + (static_cast<unsigned int>(rand()) % 128)) << 0x10) +
@@ -112,7 +103,7 @@ gnut::color gnut::color::dark_pastel() {
     return color(c);
 }
 
-gnut::color gnut::color::bright_pastel() {
+gnut::gfx::color gnut::gfx::color::bright_pastel() {
     unsigned int c =
         ((0x10 + (static_cast<unsigned int>(rand()) % 200)) << 0x18) +
         ((0x10 + (static_cast<unsigned int>(rand()) % 200)) << 0x10) +
@@ -122,7 +113,7 @@ gnut::color gnut::color::bright_pastel() {
     return color(c);
 }
 
-gnut::color gnut::color::dark_shade() {
+gnut::gfx::color gnut::gfx::color::dark_shade() {
     unsigned int shade = 0x0 + (rand() % 80);
     
     unsigned int c =
@@ -134,31 +125,31 @@ gnut::color gnut::color::dark_shade() {
     return color(c);
 }
 
-gnut::color gnut::color::ambient() {
+gnut::gfx::color gnut::gfx::color::ambient() {
     return color(0x111111FF);
 }
 
-gnut::color gnut::color::diffuse() {
+gnut::gfx::color gnut::gfx::color::diffuse() {
     return color(0xffffffFF);
 }
 
-gnut::color gnut::color::specular() {
+gnut::gfx::color gnut::gfx::color::specular() {
     return color(0xffffffFF);
 }
 
-gnut::color gnut::color::ambient_material() {
+gnut::gfx::color gnut::gfx::color::ambient_material() {
     return color(0x434343FF);
 }
 
-gnut::color gnut::color::diffuse_material() {
+gnut::gfx::color gnut::gfx::color::diffuse_material() {
     return color(0xbcbcbcFF);
 }
 
-gnut::color gnut::color::specular_material() {
+gnut::gfx::color gnut::gfx::color::specular_material() {
     return color(0xffffffFF);
 }
 
-gnut::color gnut::color::emissive_material() {
+gnut::gfx::color gnut::gfx::color::emissive_material() {
     return color(0x000000FF);
 }
 

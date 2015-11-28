@@ -8,16 +8,17 @@
 #include "color.h"
 
 namespace gnut {
+    namespace gfx {
+        typedef struct material {
+            color ambient;
+            color diffuse;
+            color specular;
+            color emissive;
+            float shininess;
+        } material;
 
-    typedef struct material {
-        color ambient;
-        color diffuse;
-        color specular;
-        color emissive;
-        float shininess;
-    } material;
-
-    void apply(material mat);
+        void apply(material mat);
+    }
 }
 
 #endif

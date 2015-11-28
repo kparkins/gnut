@@ -8,30 +8,30 @@
 gnut::log::plogger logger = make_shared<gnut::log::logger>();
 
 gnut::log::logger::logger() {
-    m_loglevel = log_level::warning;
+    m_loglevel = level::warning;
 }
 
 gnut::log::logger::~logger() {
     m_streams.clear();
 }
 
-gnut::log::log_level gnut::log::logger::level() {
+gnut::log::level gnut::log::logger::log_level() {
     lock_guard<mutex> lock(m_mutex);
     return this->m_loglevel;
 }
 
-void gnut::log::logger::level(gnut::log::log_level level) {
+void gnut::log::logger::log_level(level level) {
     lock_guard<mutex> lock(m_mutex);
     this->m_loglevel = level;
 }
 
-void gnut::log::logger::add(gnut::log::plog stream) {
+void gnut::log::logger::add(plog stream) {
     lock_guard<mutex> lock(m_mutex);
     assert(stream);
     m_streams.push_back(stream);
 }
 
-void gnut::log::logger::remove(gnut::log::plog stream) {
+void gnut::log::logger::remove(plog stream) {
     lock_guard<mutex> lock(m_mutex);
     remove_if(m_streams.begin(), m_streams.end(), [&] (const plog & p) -> bool { return stream == p; });
 }

@@ -46,7 +46,7 @@ const GLchar* frag_shader = "#version 330 core\n"
 
 int main(int argc, char* argv[]) {
     log::plog console = std::make_shared<log::console>();
-    ::logger->level(log::log_level::warning);
+    ::logger->log_level(log::level::warning);
     ::logger->add(console);
 
     glfwSetErrorCallback(errorCallback);
