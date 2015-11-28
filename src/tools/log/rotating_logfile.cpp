@@ -21,7 +21,7 @@ gnut::log::rotating_logfile::rotating_logfile(const string &prefix,
     sstream << "-" << m_fileindex++ << ".log";
 
     m_logfile.open(sstream.str(), mode);
-    if(!m_logfile.is_open()) {
+    if(!m_logfile.is_open() || !m_logfile.good()) {
         throw runtime_error("Unable to open rotating logfile " + prefix);
     }
 }

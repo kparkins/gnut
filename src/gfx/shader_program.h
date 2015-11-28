@@ -19,7 +19,6 @@ using std::shared_ptr;
 
 namespace gnut {
     class shader_program {
-
     public:
 
         shader_program();

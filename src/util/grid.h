@@ -7,7 +7,6 @@
 namespace gnut {
     template<typename T>
     class grid {
-
     public:
 
         grid(size_t rows, size_t cols);

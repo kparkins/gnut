@@ -20,7 +20,6 @@ using std::runtime_error;
 namespace gnut {
     namespace log {
         class logfile : public log {
-
         public:
 
             logfile(const string & file, ios_base::openmode mode = ios_base::out);

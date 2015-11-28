@@ -8,7 +8,6 @@
 
 namespace gnut {
     class color {
-
     public:
 
         color();

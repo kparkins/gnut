@@ -17,7 +17,6 @@ using std::stringstream;
 namespace gnut {
     namespace log {
         class log {
-
         public:
 
             virtual ~log() { }

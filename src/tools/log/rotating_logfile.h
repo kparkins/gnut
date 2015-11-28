@@ -17,7 +17,6 @@ using std::runtime_error;
 namespace gnut {
     namespace log {
         class rotating_logfile : public log {
-
         public:
 
             rotating_logfile(const string & prefix, unsigned int max_files, unsigned int max_lines,

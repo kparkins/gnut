@@ -50,8 +50,7 @@ namespace gnut {
             };
 
             class logger {
-
-                public:
+            public:
 
                 logger();
                 ~logger();
@@ -64,7 +63,7 @@ namespace gnut {
 
                 void log(const string &message);
 
-                private:
+            private:
 
                 string m_tag;
                 mutex m_mutex;

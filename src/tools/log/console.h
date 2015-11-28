@@ -17,7 +17,6 @@ using std::lock_guard;
 namespace gnut {
     namespace log {
         class console : public log {
-
         public:
 
             console();
