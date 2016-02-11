@@ -82,12 +82,7 @@ int main(int argc, char* argv[]) {
     glfwSetKeyCallback(main_window, keyCallback);
     glfwSetWindowSizeCallback(main_window, window_size_callback);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
     glViewport(0, 0, 640, 480);
-    gluPerspective(60.0, 640.0 / 480.0, 1.0, 1000.0);
 
     GLchar error_log[512];
     GLint success;
@@ -130,22 +125,16 @@ int main(int argc, char* argv[]) {
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
-
     // main loop
     while(!glfwWindowShouldClose(main_window)) {
         glfwPollEvents();
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-
         glUseProgram(program);
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
-
-        LOGE(logger, "test " << " tes2 " << 1 << 2 << " :) ");
 
         glPopMatrix();
         glfwSwapBuffers(main_window);
