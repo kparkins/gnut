@@ -7,6 +7,8 @@
 
 #include "logger.h"
 #include "console.h"
+#include "mesh_loader.h"
+#include "shader_program.h"
 
 using std::cout;
 using std::endl;
@@ -84,33 +86,10 @@ int main(int argc, char* argv[]) {
 
     glViewport(0, 0, 640, 480);
 
-    GLchar error_log[512];
-    GLint success;
-
-    GLuint vert = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vert, 1, &vertex_shader, NULL);
-    glCompileShader(vert);
-    glGetShaderiv(vert, GL_COMPILE_STATUS, &success);
-    if(!success) {
-        glGetShaderInfoLog(vert, 512, 0, error_log);
-    }
-
-    GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(frag, 1, &frag_shader, NULL);
-    glCompileShader(frag);
-    glGetShaderiv(frag, GL_COMPILE_STATUS, &success);
-    if(!success) {
-        glGetShaderInfoLog(frag, 512, 0, error_log);
-    }
-
-    GLuint program = glCreateProgram();
-    glAttachShader(program, vert);
-    glAttachShader(program, frag);
-    glLinkProgram(program);
-    glDetachShader(program, vert);
-    glDetachShader(program, frag);
-    glDeleteShader(vert);
-    glDeleteShader(frag);
+    gfx::shader_program shader_program;
+    shader_program.attach(GL_VERTEX_SHADER, vertex_shader);
+    shader_program.attach(GL_FRAGMENT_SHADER, frag_shader);
+    shader_program.link_program();
 
     GLuint vao;
     GLuint vbo;
@@ -125,18 +104,20 @@ int main(int argc, char* argv[]) {
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
+    gfx::pmesh cone = gfx::mesh_loader::load("res/models/cone.off");
+
     // main loop
     while(!glfwWindowShouldClose(main_window)) {
         glfwPollEvents();
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(program);
+        shader_program.enable();
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
+        shader_program.disable();
 
-        glPopMatrix();
         glfwSwapBuffers(main_window);
     }
 

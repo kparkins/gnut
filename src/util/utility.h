@@ -7,17 +7,12 @@
 
 #include <mutex>
 #include <string>
+#include <vector>
 #include <iomanip>
 #include <sstream>
 #include <iostream>
 
-using std::hex;
-using std::setw;
-using std::mutex;
-using std::string;
-using std::setfill;
-using std::lock_guard;
-using std::stringstream;
+using namespace std;
 
 namespace gnut {
     template<typename Tr, typename Tn, typename Tm>
@@ -38,5 +33,6 @@ namespace gnut {
     }
 
     string gmt_datetime();
+    vector<string> split(const string & source, char delimeter);
 }
 #endif //GNUT_UTILITY_H

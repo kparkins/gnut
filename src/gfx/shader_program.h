@@ -8,12 +8,14 @@
 #include <string>
 #include <memory>
 #include <cassert>
+#include <vector>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
 
 #include "logger.h"
 
+using std::vector;
 using std::string;
 using std::shared_ptr;
 
@@ -25,21 +27,21 @@ namespace gnut {
             shader_program();
             ~shader_program();
 
-            shader_program &attach(GLuint type, const string &shader);
+            shader_program& attach(GLuint type, const string &shader);
 
+            bool linked();
             void link_program();
             void enable();
             void disable();
 
-            GLuint get_uniform(const string &uniform);
-            GLuint get_attribute(const string &attribute);
-
-            int add_uniform(const string &name);
-            int add_attribute(const string &name);
+            GLuint id();
 
         private:
 
+            bool m_linked;
+            bool m_enabled;
             GLuint m_id;
+            vector<GLuint> m_shaders;
 
         };
 
