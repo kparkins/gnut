@@ -64,8 +64,14 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
         }
         faces.push_back(glm::vec3(stoul(values[1]), stoul(values[2]), stoul(values[3])));
     }
+
+    /*
+    for(vec3 face : vertices) {
+        std::cout << face.x << " " << face.y << " " << face.z << std::endl;
+    }
+  */
     cout << mesh->m_vertices.size() << " " << mesh->m_faces.size() << endl;
-    mesh->compute_fnormals();
+   mesh->compute_fnormals();
     std::cout << mesh->m_fnormals.size() << std::endl;
     mesh->compute_vnormals();
     return mesh;

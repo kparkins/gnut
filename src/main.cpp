@@ -44,6 +44,7 @@ static void errorCallback(int error, const char* errorMessage) {
 GLfloat triangle[] = {0.f, .5f, 0.f, -.5f, -.5f, 0.f, .5f, -.5f, 0.f};
 const GLchar* vertex_shader = "#version 330 core\n"
                             "layout (location = 0) in vec3 vp;\n"
+                            "layout (location = 1) in vec3 vn;\n"
                             "void main() {\n"
                             "    gl_Position = vec4(vp,1.0);\n"
                             "}\n";
@@ -111,6 +112,7 @@ int main(int argc, char* argv[]) {
     shader_program.attach(GL_FRAGMENT_SHADER, frag_shader);
     shader_program.link_program();
 
+    /*
     GLuint vao;
     GLuint vbo;
     glGenVertexArrays(1, &vao);
@@ -123,9 +125,12 @@ int main(int argc, char* argv[]) {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (const void*) 0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
+*/
+    gfx::pmesh cone = gfx::mesh_loader::load("res/models/sphere.off");
+    cone->generate_buffer();
 
-    gfx::pmesh cone = gfx::mesh_loader::load("res/models/cone.off");
-
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
     // main loop
     while(!glfwWindowShouldClose(main_window)) {
         glfwPollEvents();
@@ -133,16 +138,12 @@ int main(int argc, char* argv[]) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         shader_program.enable();
-        glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        glBindVertexArray(0);
+        cone->draw();
         shader_program.disable();
 
         glfwSwapBuffers(main_window);
     }
 
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
     glfwDestroyWindow(main_window);
     glfwTerminate();
 

@@ -7,6 +7,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#define GLEW_STATIC
+#include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/detail/type_vec.hpp>
 #include <glm/detail/type_vec3.hpp>
@@ -29,12 +31,17 @@ namespace gnut {
             mesh();
             virtual ~mesh();
 
+            void generate_buffer();
+            void draw();
+
         protected:
 
             void compute_fnormals();
             void compute_vnormals();
 
             void compute_vfadjacency();
+
+            vector<float> m_flatbuffer;
 
             vector<vec3> m_vertices;
             vector<vec3> m_vnormals;
@@ -43,6 +50,9 @@ namespace gnut {
             vector<vec3> m_fnormals;
 
             unordered_map<unsigned int, set<unsigned int>> m_vfadjacency;
+
+            GLuint m_vao;
+            GLuint m_vbo;
 
             friend class mesh_loader;
 
