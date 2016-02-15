@@ -34,7 +34,7 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
     getline(file_stream, line);
     vector<string> values = gnut::split(line, ' ');
     if(values.size() != 3) {
-        LOGE(::logger, "Error parsing off file.");
+        LOG_ERROR("Error parsing off file.");
         return nullptr;
     }
 
@@ -57,7 +57,7 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
         values = gnut::split(line, ' ');
         face_verts = stoi(values[0]);
         if(face_verts != 3 && face_verts != 4 ) {
-            LOGE(::logger, "Error. Invalid number of vertices per face.");
+            LOG_ERROR("Error. Invalid number of vertices per face.");
             return nullptr;
         }
         faces.push_back(stoi(values[1]));
