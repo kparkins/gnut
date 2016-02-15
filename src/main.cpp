@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "logger.h"
 #include "console.h"
@@ -15,6 +16,8 @@ using std::endl;
 using std::cerr;
 using namespace gnut;
 
+static int window_height;
+static int window_width;
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -23,10 +26,11 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
 }
 
 static void window_size_callback(GLFWwindow* window, int width, int height) {
+    window_width = width;
+    window_height = height;
     glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-
     gluPerspective(60.0, (double) width / ((double) height), 1.f, 1000.f);
 }
 
@@ -45,6 +49,19 @@ const GLchar* frag_shader = "#version 330 core\n"
                           "void main() {"
                           "   frag_color = vec4(.5, 0, .5, 1.0);"
                           "}";
+
+glm::vec3 convert_coords(int x, int y) {
+    glm::vec3 v;
+    v.x = (2.f * x - window_width) / window_width;
+    v.y = (window_height - 2.f * y) / window_height;
+    v.z = 0.f;
+    float distance = glm::length(v);
+    if(distance > 1.f) {
+        distance = 1.f;
+    }
+    v.z = sqrtf(1.f - (distance * distance));
+    return glm::normalize(v);
+}
 
 int main(int argc, char* argv[]) {
     log::plog console = std::make_shared<log::console>();

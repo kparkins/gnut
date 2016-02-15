@@ -28,47 +28,44 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
     // check header
     getline(file_stream, line);
     transform(line.begin(), line.end(), line.begin(), ::tolower);
-    assert(line == "off");
+    if(line != "off") {
+       LOGE(::logger, "Error. Fle header did not match expected for OFF file.");
+    }
 
     // get number of vertices/faces/edges
     getline(file_stream, line);
     vector<string> values = gnut::split(line, ' ');
     if(values.size() != 3) {
-        LOGE(::logger, "Error parsing off file.");
+        LOGE(::logger, "Error. Missing vertex, face, or edge size information in OFF file.");
         return nullptr;
     }
 
-    size_t num_verts = stoi(values[0]);
-    size_t num_faces = stoi(values[1]);
+    size_t num_verts = stoul(values[0]);
+    size_t num_faces = stoul(values[1]);
 
     // get vertices
     pmesh mesh = make_shared<gnut::gfx::mesh>();
-    vector<float>& vertices = mesh->m_vertices;
-    vector<int>& faces = mesh->m_faces;
+    vector<glm::vec3>& vertices = mesh->m_vertices;
+    vector<glm::vec3>& faces = mesh->m_faces;
     while(num_verts-- > 0 && getline(file_stream, line)) {
         values = gnut::split(line, ' ');
-        vertices.push_back(stoi(values[0]));
-        vertices.push_back(stoi(values[1]));
-        vertices.push_back(stoi(values[2]));
+        vertices.push_back(glm::vec3(stof(values[0]), stof(values[1]), stof(values[2])));
     }
 
     size_t face_verts = 0;
     while(num_faces-- > 0 && getline(file_stream, line)) {
         values = gnut::split(line, ' ');
-        face_verts = stoi(values[0]);
-        if(face_verts != 3 && face_verts != 4 ) {
+        face_verts = stoul(values[0]);
+        if(face_verts != 3) {
             LOGE(::logger, "Error. Invalid number of vertices per face.");
             return nullptr;
         }
-        faces.push_back(stoi(values[1]));
-        faces.push_back(stoi(values[2]));
-        faces.push_back(stoi(values[3]));
-        if(face_verts == 4) {
-            faces.push_back(stoi(values[3]));
-            faces.push_back(stoi(values[4]));
-            faces.push_back(stoi(values[1]));
-        }
+        faces.push_back(glm::vec3(stoul(values[1]), stoul(values[2]), stoul(values[3])));
     }
     cout << mesh->m_vertices.size() << " " << mesh->m_faces.size() << endl;
+    mesh->compute_fnormals();
+    std::cout << mesh->m_fnormals.size() << std::endl;
+    mesh->compute_vnormals();
     return mesh;
 }
+
