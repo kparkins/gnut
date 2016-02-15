@@ -22,3 +22,13 @@ string gnut::gmt_datetime() {
             << setfill('0') << setw(2) << tm->tm_sec << "  ";
     return sstream.str();
 }
+
+vector<string> gnut::split(const string & source, char delimeter) {
+    string token;
+    vector<string> tokens;
+    stringstream s(source);
+    while(getline(s, token, delimeter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}

@@ -28,6 +28,7 @@ endif(APPLE)
 
 include_directories("src/gfx" "src/util" "src/net" "src/" "src/tools" "src/tools/log" "src/tools/script")
 file(GLOB_RECURSE SOURCES "src/*.cpp")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_range_for)
