@@ -23,20 +23,22 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
     ifstream file_stream(file);
 
     if(!file_stream.is_open() || !file_stream.good()) {
+        LOG_ERROR("Error. Problem opening file -- " << file);
         return nullptr;
     }
     // check header
     getline(file_stream, line);
     transform(line.begin(), line.end(), line.begin(), ::tolower);
     if(line != "off") {
-       LOGE(::logger, "Error. Fle header did not match expected for OFF file.");
+       LOG_ERROR("Error. File header did not match expected for OFF file for " << file);
+        return nullptr;
     }
 
     // get number of vertices/faces/edges
     getline(file_stream, line);
     vector<string> values = gnut::split(line, ' ');
     if(values.size() != 3) {
-        LOGE(::logger, "Error. Missing vertex, face, or edge size information in OFF file.");
+        LOG_ERROR("Error. Missing vertex, face, or edge size information in OFF file " << file);
         return nullptr;
     }
 
@@ -57,7 +59,7 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
         values = gnut::split(line, ' ');
         face_verts = stoul(values[0]);
         if(face_verts != 3) {
-            LOGE(::logger, "Error. Invalid number of vertices per face.");
+            LOG_ERROR("Error. Invalid number of vertices per face. " << file);
             return nullptr;
         }
         faces.push_back(glm::vec3(stoul(values[1]), stoul(values[2]), stoul(values[3])));

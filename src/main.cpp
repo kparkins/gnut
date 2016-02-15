@@ -1,3 +1,6 @@
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
 
 #include <iostream>
 #define GLEW_STATIC
@@ -40,15 +43,15 @@ static void errorCallback(int error, const char* errorMessage) {
 
 GLfloat triangle[] = {0.f, .5f, 0.f, -.5f, -.5f, 0.f, .5f, -.5f, 0.f};
 const GLchar* vertex_shader = "#version 330 core\n"
-                            "layout (location = 0) in vec3 vp;"
-                            "void main() {"
-                            "    gl_Position = vec4(vp,1.0);"
-                            "}";
+                            "layout (location = 0) in vec3 vp;\n"
+                            "void main() {\n"
+                            "    gl_Position = vec4(vp,1.0);\n"
+                            "}\n";
 const GLchar* frag_shader = "#version 330 core\n"
-                          "out vec4 frag_color;"
-                          "void main() {"
-                          "   frag_color = vec4(.5, 0, .5, 1.0);"
-                          "}";
+                          "out vec4 frag_color;\n"
+                          "void main() {\n"
+                          "   frag_color = vec4(.5, 0, .5, 1.0);\n"
+                          "}\n";
 
 glm::vec3 convert_coords(int x, int y) {
     glm::vec3 v;
@@ -65,7 +68,7 @@ glm::vec3 convert_coords(int x, int y) {
 
 int main(int argc, char* argv[]) {
     log::plog console = std::make_shared<log::console>();
-    ::logger->log_level(log::level::warning);
+    ::logger->log_level(log::level::trace);
     ::logger->add(console);
 
     glfwSetErrorCallback(errorCallback);

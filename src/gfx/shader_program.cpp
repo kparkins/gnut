@@ -1,6 +1,6 @@
-//
-// Created by Kyle on 11/25/2015.
-//
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
 
 #include "shader_program.h"
 
@@ -22,7 +22,7 @@ gnut::gfx::shader_program& gnut::gfx::shader_program::attach(GLuint type, const 
     glGetShaderiv(id, GL_COMPILE_STATUS, &success);
     if(!success) {
         glGetShaderInfoLog(id, 512, 0, error_log);
-        LOGE(::logger, error_log);
+        LOG_ERROR(error_log);
     }
     m_shaders.push_back(id);
     return *this;
@@ -34,13 +34,13 @@ void gnut::gfx::shader_program::link_program() {
     for(GLuint shader : m_shaders) {
         glAttachShader(m_id, shader);
     }
-    GLint link_success;
+    GLint link_success = GL_TRUE;
     glLinkProgram(m_id);
     glGetShaderiv(m_id, GL_COMPILE_STATUS, &link_success);
     if(!link_success) {
         GLchar error_log[512];
         glGetShaderInfoLog(m_id, 512, 0, error_log);
-        LOGE(::logger, error_log);
+        LOG_ERROR(error_log);
         return;
     }
     for(GLuint shader : m_shaders) {

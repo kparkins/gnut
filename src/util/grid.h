@@ -1,3 +1,7 @@
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
+
 #ifndef GNUT_GRID_H
 #define GNUT_GRID_H
 

@@ -1,6 +1,6 @@
-//
-// Created by Kyle on 11/26/2015.
-//
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
 
 #ifndef GNUT_CONSOLE_STREAM_H
 #define GNUT_CONSOLE_STREAM_H

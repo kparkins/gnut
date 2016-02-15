@@ -1,3 +1,6 @@
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
 #include "material.h"
 
 void gnut::gfx::apply(material mat) {
