@@ -1,6 +1,6 @@
-//
-// Created by Kyle on 11/27/2015.
-//
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
 
 #include "rotating_logfile.h"
 
@@ -40,7 +40,7 @@ unsigned int gnut::log::rotating_logfile::max_files() {
     return m_maxfiles;
 }
 
-void gnut::log::rotating_logfile::max_liles(unsigned int l) {
+void gnut::log::rotating_logfile::max_lines(unsigned int l) {
     m_maxlines = l;
 }
 
@@ -61,8 +61,8 @@ void gnut::log::rotating_logfile::write(const string & message) {
         m_lineindex = 0;
     }
 
-    if(m_logfile.is_open()) {
+    if(m_logfile.is_open() && m_logfile.good()) {
         m_logfile << message;
+        ++m_lineindex;
     }
-    ++m_lineindex;
 }

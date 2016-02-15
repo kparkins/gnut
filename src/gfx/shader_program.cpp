@@ -1,6 +1,6 @@
-//
-// Created by Kyle on 11/25/2015.
-//
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
 
 #include "shader_program.h"
 
@@ -20,7 +20,6 @@ gnut::gfx::shader_program& gnut::gfx::shader_program::attach(GLuint type, const 
     glCompileShader(id);
     glGetShaderiv(id, GL_COMPILE_STATUS, &success);
     if(!success) {
-        LOGE(::logger, "Shader compile error : " << "");
     }
     return *this;
 }

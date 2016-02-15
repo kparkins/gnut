@@ -1,6 +1,6 @@
-//
-// Created by Kyle on 11/25/2015.
-//
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
 
 #include "logger.h"
 

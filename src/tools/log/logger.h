@@ -1,6 +1,6 @@
-//
-// Created by Kyle on 11/25/2015.
-//
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
 
 #ifndef GNUT_LOGGER_H
 #define GNUT_LOGGER_H
@@ -18,9 +18,10 @@
 #include <iostream>
 #include <algorithm>
 
+#include "log.h"
 #include "macros.h"
 #include "utility.h"
-#include "log.h"
+#include "compile_flags.h"
 
 using std::setw;
 using std::left;
@@ -39,112 +40,70 @@ using std::make_shared;
 using std::stringstream;
 
 namespace gnut {
-    namespace log{
-            enum level {
-                trace = 5,
-                info = 4,
-                debug = 3,
-                warning = 2,
-                error = 1,
-                fatal = 0
-            };
+    namespace log {
 
-            class logger {
-            public:
+        enum level {
+            trace = 5,
+            info = 4,
+            debug = 3,
+            warning = 2,
+            error = 1,
+            fatal = 0
+        };
 
-                logger();
-                ~logger();
+        class logger {
+        public:
 
-                level log_level();
-                void log_level(level level);
+            logger();
+            ~logger();
 
-                void add(plog stream);
-                void remove(plog stream);
+            level log_level();
+            void log_level(level level);
 
-                void log(const string &message);
+            void add(plog stream);
+            void remove(plog stream);
 
-            private:
+            void log(const string &message);
 
-                string m_tag;
-                mutex m_mutex;
-                level m_loglevel;
-                vector<plog> m_streams;
+        private:
 
-            };
+            mutex m_mutex;
+            level m_loglevel;
+            vector<plog> m_streams;
 
-            typedef shared_ptr<logger> plogger;
+        };
 
-#define LOGT(logger, msg) \
+        typedef shared_ptr<logger> plogger;
+
+#if GNUT_ENABLE_LOGGING
+#define LOG(level, tag, msg) \
     { \
-        if(logger->log_level() >= gnut::log::level::trace) { \
+        if(logger->log_level() >= level) { \
             stringstream sstream; \
             std::thread::id id = std::this_thread::get_id(); \
             sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
                     << gnut::gmt_datetime()                                        \
-                    << __FILENAME__ << "(" << __LINE__ << ")" << " [TRACE] " << msg << endl; \
+                    << __FILENAME__ << "(" << __LINE__ << ")" << tag << msg << endl; \
             logger->log(sstream.str()); \
         } \
-    }\
+    } \
 
-#define LOGI(logger, msg) \
-    { \
-        if(logger->log_level() >= gnut::log::level::info) { \
-            stringstream sstream; \
-            std::thread::id id = std::this_thread::get_id(); \
-            sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
-                    << gnut::gmt_datetime()                                        \
-                    << __FILENAME__ << "(" << __LINE__ << ")" << " [INFO] " << msg << endl; \
-            logger->log(sstream.str()); \
-        } \
-    }\
+#define LOG_TRACE(msg) LOG(log::level::trace, " [TRACE] ", msg)
+#define LOG_INFO(msg) LOG(log::level::info, " [INFO] ", msg);
+#define LOG_DEBUG(msg) LOG(log::level::debug, " [DEBUG] ", msg)
+#define LOG_WARNING(msg) LOG(log::level::warning, " [WARNING] ", msg)
+#define LOG_ERROR(msg) LOG(log::level::error, " [ERROR] ", msg)
+#define LOG_FATAL(msg) LOG(log::level::fatal, " [FATAL] ", msg)
 
-#define LOGD(logger, msg) \
-    { \
-        if(logger->log_level() >= gnut::log::level::debug) { \
-            stringstream sstream; \
-            std::thread::id id = std::this_thread::get_id(); \
-            sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
-                    << gnut::gmt_datetime()                                        \
-                    << __FILENAME__ << "(" << __LINE__ << ")" << " [DEBUG] " << msg << endl; \
-            logger->log(sstream.str()); \
-        } \
-    }\
+#else
 
-#define LOGW(logger, msg) \
-    { \
-        if(logger->log_level() >= gnut::log::level::warning) { \
-            stringstream sstream; \
-            std::thread::id id = std::this_thread::get_id(); \
-            sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
-                    << gnut::gmt_datetime()                                        \
-                    << __FILENAME__ << "(" << __LINE__ << ")" << " [WARNING] " << msg << endl; \
-            logger->log(sstream.str()); \
-        } \
-    }\
-
-#define LOGE(logger, msg) \
-    { \
-        if(logger->log_level() >= gnut::log::level::error) { \
-            stringstream sstream; \
-            std::thread::id id = std::this_thread::get_id(); \
-            sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
-                    << gnut::gmt_datetime()                                        \
-                    << __FILENAME__ << "(" << __LINE__ << ")" << " [ERROR] " << msg << endl; \
-            logger->log(sstream.str()); \
-        } \
-    }\
-
-#define LOGF(logger, msg) \
-    { \
-        if(logger->log_level() >= gnut::log::level::fatal) { \
-            stringstream sstream; \
-            std::thread::id id = std::this_thread::get_id(); \
-            sstream << "[" << setfill(' ') << setw(14) << gnut::to_hex(id) << "] " \
-                    << gnut::gmt_datetime()                                        \
-                    << __FILENAME__ << "(" << __LINE__ << ")" << " [FATAL] " << msg << endl; \
-            logger->log(sstream.str()); \
-        } \
-    }\
+#define LOG_TRACE(msg)
+#define LOG_INFO(msg)
+#define LOG_DEBUG(msg)
+#define LOG_WARNING(msg)
+#define LOG_ERROR(msg)
+#define LOG_FATAL(msg)
+#endif
 
     }
 }

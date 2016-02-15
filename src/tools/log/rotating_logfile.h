@@ -1,6 +1,6 @@
-//
-// Created by Kyle on 11/27/2015.
-//
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
 
 #ifndef GNUT_ROTATING_LOGFILE_H
 #define GNUT_ROTATING_LOGFILE_H
@@ -26,7 +26,7 @@ namespace gnut {
             void max_files(unsigned int n);
             unsigned int max_files();
 
-            void max_liles(unsigned int l);
+            void max_lines(unsigned int l);
             unsigned int max_lines();
 
             string prefix();

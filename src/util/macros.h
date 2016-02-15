@@ -1,7 +1,6 @@
-//
-//  Macros.h
-//  Graphics
-//
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
 
 #ifndef GNUT_MACROS_H
 #define GNUT_MACROS_H

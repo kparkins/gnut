@@ -1,3 +1,6 @@
+/**
+ * Copyright Kyle Parkinson 2016. All rights reserved.
+ */
 
 #include <iostream>
 #define GLEW_STATIC
@@ -46,7 +49,7 @@ const GLchar* frag_shader = "#version 330 core\n"
 
 int main(int argc, char* argv[]) {
     log::plog console = std::make_shared<log::console>();
-    ::logger->log_level(log::level::warning);
+    ::logger->log_level(log::level::trace);
     ::logger->add(console);
 
     glfwSetErrorCallback(errorCallback);
@@ -144,8 +147,6 @@ int main(int argc, char* argv[]) {
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
-
-        LOGE(logger, "test " << " tes2 " << 1 << 2 << " :) ");
 
         glPopMatrix();
         glfwSwapBuffers(main_window);
