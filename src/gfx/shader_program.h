@@ -14,6 +14,7 @@
 #include <GL/glew.h>
 
 #include "logger.h"
+#include "shader.h"
 
 using std::vector;
 using std::string;
@@ -27,7 +28,8 @@ namespace gnut {
             shader_program();
             ~shader_program();
 
-            shader_program& attach(GLuint type, const string &shader);
+            shader_program& attach(GLuint id);
+            shader_program& attach(const gfx::shader & shader);
 
             bool linked();
             void link_program();

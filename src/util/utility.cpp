@@ -4,6 +4,16 @@
 
 #include "utility.h"
 
+string gnut::read_file(const string & file) {
+    stringstream sstream;
+    ifstream file_stream(file);
+    if(!file_stream.is_open() || !file_stream.good()) {
+        return string("");
+    }
+    sstream << file_stream.rdbuf();
+    return sstream.str();
+}
+
 string gnut::gmt_datetime() {
     stringstream sstream;
     static mutex gmtime_mutex;

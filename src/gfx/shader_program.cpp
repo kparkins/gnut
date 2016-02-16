@@ -11,20 +11,15 @@ gnut::gfx::shader_program::~shader_program() {
     glDeleteProgram(m_id);
 }
 
-gnut::gfx::shader_program& gnut::gfx::shader_program::attach(GLuint type, const string & shader) {
+gnut::gfx::shader_program& gnut::gfx::shader_program::attach(GLuint id) {
     assert(!m_linked);
-    int success = 0;
-    GLchar error_log[512];
-    const char* source = shader.c_str();
-    GLuint id = glCreateShader(type);
-    glShaderSource(id, 1, &source, 0);
-    glCompileShader(id);
-    glGetShaderiv(id, GL_COMPILE_STATUS, &success);
-    if(!success) {
-        glGetShaderInfoLog(id, 512, 0, error_log);
-        LOG_ERROR(error_log);
-    }
     m_shaders.push_back(id);
+    return *this;
+}
+
+gnut::gfx::shader_program& gnut::gfx::shader_program::attach(const gnut::gfx::shader & shader) {
+    assert(!m_linked);
+    m_shaders.push_back(shader.id());
     return *this;
 }
 

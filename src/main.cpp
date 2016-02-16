@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <shader.h>
 
 #include "logger.h"
 #include "console.h"
@@ -107,25 +108,13 @@ int main(int argc, char* argv[]) {
 
     glViewport(0, 0, 640, 480);
 
+    gfx::shader vertex(GL_VERTEX_SHADER, "res/shaders/default.vert");
+    gfx::shader frag(GL_FRAGMENT_SHADER, "res/shaders/default.frag");
     gfx::shader_program shader_program;
-    shader_program.attach(GL_VERTEX_SHADER, vertex_shader);
-    shader_program.attach(GL_FRAGMENT_SHADER, frag_shader);
+    shader_program.attach(vertex);
+    shader_program.attach(frag);
     shader_program.link_program();
 
-    /*
-    GLuint vao;
-    GLuint vbo;
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 9, &triangle[0], GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (const void*) 0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
-*/
     gfx::pmesh cone = gfx::mesh_loader::load("res/models/sphere.off");
     cone->generate_buffer();
 

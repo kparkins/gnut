@@ -41,7 +41,7 @@ namespace gnut {
 
             void compute_vfadjacency();
 
-            vector<float> m_flatbuffer;
+            vector<float> m_bufferdata;
 
             vector<vec3> m_vertices;
             vector<vec3> m_vnormals;

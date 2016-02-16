@@ -8,6 +8,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <iostream>
@@ -32,6 +33,7 @@ namespace gnut {
         return sstream.str();
     }
 
+    string read_file(const string & file);
     string gmt_datetime();
     vector<string> split(const string & source, char delimeter);
 }
