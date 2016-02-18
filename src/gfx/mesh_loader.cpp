@@ -30,7 +30,7 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
     getline(file_stream, line);
     transform(line.begin(), line.end(), line.begin(), ::tolower);
     if(line != "off") {
-       LOG_ERROR("Error. File header did not match expected for OFF file for " << file);
+        LOG_ERROR("Error. File header did not match expected for OFF file for " << file);
         return nullptr;
     }
 
@@ -65,6 +65,7 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
         faces.push_back(glm::vec3(stoul(values[1]), stoul(values[2]), stoul(values[3])));
     }
 
+    mesh->compute_vfadjacency();
     mesh->compute_fnormals();
     mesh->compute_vnormals();
 

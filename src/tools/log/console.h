@@ -22,7 +22,6 @@ namespace gnut {
             console();
             ~console();
 
-
             void write(const string &message) override;
 
         protected:
