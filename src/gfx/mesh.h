@@ -25,6 +25,15 @@ using namespace glm;
 namespace gnut {
     namespace gfx {
 
+        typedef struct face {
+            face();
+            face(unsigned int v0, unsigned int v1, unsigned int v2);
+            ~face();
+            unsigned int v0;
+            unsigned int v1;
+            unsigned int v2;
+        }face;
+
         class mesh {
         public:
 
@@ -46,7 +55,7 @@ namespace gnut {
             vector<vec3> m_vertices;
             vector<vec3> m_vnormals;
 
-            vector<vec3> m_faces;
+            vector<face> m_faces;
             vector<vec3> m_fnormals;
 
             unordered_map<unsigned int, set<unsigned int>> m_vfadjacency;
