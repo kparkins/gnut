@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    view = glm::lookAt(vec3(0, 0, 3), vec3(0,0,0), vec3(0,1,0));
+    view = glm::lookAt(vec3(0, 0, 4), vec3(0,0,0), vec3(0,1,0));
     projection = glm::perspective(45.f, static_cast<float>(window_width) / static_cast<float>(window_height), 1.f, 1000.f);
 
     main_shader = make_shared<gnut::gfx::shader_program>();
@@ -179,10 +179,9 @@ int main(int argc, char* argv[]) {
     gfx::pmesh mesh = gfx::mesh_loader::load("res/models/testpatch.off");
     mesh->debug(true);
     main_shader = debug;
-    mesh->print_adjacency();
-    mesh->edge_collapse(0, 1);
+    //mesh->print_adjacency();
     mesh->generate_buffer();
-    mesh->print_adjacency();
+    //mesh->print_adjacency();
 
     // main loop
     while(!glfwWindowShouldClose(main_window)) {

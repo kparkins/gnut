@@ -46,7 +46,7 @@ void gnut::gfx::mesh::generate_buffer() {
     if(m_debug) {
         return this->generate_dbuffer();
     }
-    for(size_t j = 0; j < m_faces.size(); ++j) {
+  /*  for(size_t j = 0; j < m_faces.size(); ++j) {
         vec3 v0 = m_vertices[m_faces[j].v0];
         vec3 vn0 = m_vnormals[m_faces[j].v0];
         m_bufferdata.push_back(v0.x);
@@ -73,7 +73,7 @@ void gnut::gfx::mesh::generate_buffer() {
         m_bufferdata.push_back(vn2.x);
         m_bufferdata.push_back(vn2.y);
         m_bufferdata.push_back(vn2.z);
-    }
+    }*/
 
     glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vbo);
@@ -96,10 +96,10 @@ void gnut::gfx::mesh::generate_buffer() {
 }
 
 void gnut::gfx::mesh::generate_dbuffer() {
-    for(size_t j = 0; j < m_faces.size(); ++j) {
-        vec3 color = m_colors[j];
-        vec3 v0 = m_vertices[m_faces[j].v0];
-        vec3 vn0 = m_vnormals[m_faces[j].v0];
+    for(auto it = m_faces.begin(); it != m_faces.end(); ++it) {
+        vec3 color = m_colors[it->first];
+        vec3 v0 = m_vertices[it->second.v0];
+        vec3 vn0 = m_vnormals[it->second.v0];
         m_bufferdata.push_back(v0.x);
         m_bufferdata.push_back(v0.y);
         m_bufferdata.push_back(v0.z);
@@ -110,8 +110,8 @@ void gnut::gfx::mesh::generate_dbuffer() {
         m_bufferdata.push_back(color.y);
         m_bufferdata.push_back(color.z);
 
-        vec3 v1 = m_vertices[m_faces[j].v1];
-        vec3 vn1 = m_vnormals[m_faces[j].v1];
+        vec3 v1 = m_vertices[it->second.v1];
+        vec3 vn1 = m_vnormals[it->second.v1];
         m_bufferdata.push_back(v1.x);
         m_bufferdata.push_back(v1.y);
         m_bufferdata.push_back(v1.z);
@@ -122,8 +122,8 @@ void gnut::gfx::mesh::generate_dbuffer() {
         m_bufferdata.push_back(color.y);
         m_bufferdata.push_back(color.z);
 
-        vec3 v2 = m_vertices[m_faces[j].v2];
-        vec3 vn2 = m_vnormals[m_faces[j].v2];
+        vec3 v2 = m_vertices[it->second.v2];
+        vec3 vn2 = m_vnormals[it->second.v2];
         m_bufferdata.push_back(v2.x);
         m_bufferdata.push_back(v2.y);
         m_bufferdata.push_back(v2.z);
@@ -161,19 +161,18 @@ void gnut::gfx::mesh::generate_dbuffer() {
 void gnut::gfx::mesh::generate_colors() {
     srand(time(NULL));
     float r, g, b;
-    for(size_t i = 0; i < m_faces.size(); ++i) {
+    for(auto it = m_faces.begin(); it != m_faces.end(); ++it) {
         r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
         g = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
         b = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-        m_colors.push_back(vec3(r, g, b));
+        m_colors[it->first] = vec3(r, g, b);
     }
 }
 
 void gnut::gfx::mesh::debug(bool on) {
     m_debug = on;
-    if(m_colors.size() == 0) {
-        this->generate_colors();
-    }
+    m_colors.clear();
+    this->generate_colors();
 }
 
 void gnut::gfx::mesh::draw() {
@@ -185,43 +184,46 @@ void gnut::gfx::mesh::draw() {
 void gnut::gfx::mesh::compute_fnormals() {
     vec3 v0, v1, v2;
     m_fnormals.clear();
-    m_fnormals.resize(m_faces.size());
-    for(size_t i = 0; i < m_faces.size(); ++i) {
-        v0 = m_vertices[m_faces[i].v0];
-        v1 = m_vertices[m_faces[i].v1];
-        v2 = m_vertices[m_faces[i].v2];
-        m_fnormals[i] = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+    for(auto it = m_faces.begin(); it != m_faces.end(); ++it) {
+        v0 = m_vertices[it->second.v0];
+        v1 = m_vertices[it->second.v1];
+        v2 = m_vertices[it->second.v2];
+        m_fnormals[it->first] = glm::normalize(glm::cross(v1 - v0, v2 - v0));
     }
 }
 
 void gnut::gfx::mesh::compute_vnormals() {
-    vec3 v0, v1, v2, a, b;
-    unordered_map<unsigned int, float> weights;
-    m_vnormals.resize(m_vertices.size());
-    for(auto & p : m_vfadjacency) {
-        vec3 vnormal(0,0,0);
-        float total_weight = 0.f;
-        weights.clear();
-        for(unsigned int neighbor : p.second) {
-            face face = m_faces[neighbor];
-            if(p.first == face.v0) {
-                a = m_vertices[face.v1] - m_vertices[face.v0];
-                b = m_vertices[face.v2] - m_vertices[face.v0];
-            } else if(p.first == face.v1) {
-                a = m_vertices[face.v2] - m_vertices[face.v1];
-                b = m_vertices[face.v0] - m_vertices[face.v1];
-            } else {
-                a = m_vertices[face.v0] - m_vertices[face.v2];
-                b = m_vertices[face.v1] - m_vertices[face.v2];
-            }
-            weights[neighbor] = glm::acos(glm::dot(a, b) / (glm::length(a) * glm::length(b)));
-            total_weight += weights[neighbor];
-        }
-        for(unsigned int neighbor : p.second) {
-            vnormal += m_fnormals[neighbor] * (weights[neighbor] / total_weight);
-        }
-        m_vnormals[p.first] = normalize(vnormal);
+    if(m_vnormals.size() != m_vertices.size()) {
+        m_vnormals.resize(m_vertices.size());
     }
+    for(auto & p : m_vfadjacency) {
+        this->compute_vnormal(p.first, p.second);
+    }
+}
+
+void gnut::gfx::mesh::compute_vnormal(unsigned int vi, set<unsigned int> & neighbors) {
+    vec3 a, b, vnormal;
+    float total_weight = 0.f;
+    unordered_map<unsigned int, float> weights;
+    for(unsigned int neighbor : neighbors) {
+        face face = m_faces[neighbor];
+        if(vi == face.v0) {
+            a = m_vertices[face.v1] - m_vertices[face.v0];
+            b = m_vertices[face.v2] - m_vertices[face.v0];
+        } else if(vi == face.v1) {
+            a = m_vertices[face.v2] - m_vertices[face.v1];
+            b = m_vertices[face.v0] - m_vertices[face.v1];
+        } else {
+            a = m_vertices[face.v0] - m_vertices[face.v2];
+            b = m_vertices[face.v1] - m_vertices[face.v2];
+        }
+        weights[neighbor] = glm::acos(glm::dot(a, b) / (glm::length(a) * glm::length(b)));
+        total_weight += weights[neighbor];
+    }
+    for(unsigned int neighbor : neighbors) {
+        vnormal += m_fnormals[neighbor] * (weights[neighbor] / total_weight);
+    }
+    m_vnormals[vi] = normalize(vnormal);
 }
 
 void gnut::gfx::mesh::compute_vfadjacency() {
@@ -252,23 +254,11 @@ void gnut::gfx::mesh::print() {
 
 void gnut::gfx::mesh::remove_face(unsigned int f) {
     gfx::face & face = m_faces[f];
-
     m_vfadjacency[face.v0].erase(f);
     m_vfadjacency[face.v1].erase(f);
     m_vfadjacency[face.v2].erase(f);
-
-    m_faces[f] = m_faces[m_faces.size() - 1];
-    m_fnormals[f] = m_fnormals[m_fnormals.size() - 1];
-
-    m_vfadjacency[m_faces[f].v0].erase(m_faces.size() - 1);
-    m_vfadjacency[m_faces[f].v1].erase(m_faces.size() - 1);
-    m_vfadjacency[m_faces[f].v2].erase(m_faces.size() - 1);
-    m_vfadjacency[m_faces[f].v0].insert(f);
-    m_vfadjacency[m_faces[f].v1].insert(f);
-    m_vfadjacency[m_faces[f].v2].insert(f);
-
-    m_faces.resize(m_faces.size() - 1);
-    m_fnormals.resize(m_fnormals.size() - 1);
+    m_faces.erase(f);
+    m_fnormals.erase(f);
 }
 
 
@@ -279,29 +269,25 @@ void gnut::gfx::mesh::edge_collapse(unsigned int vi0, unsigned int vi1) {
     vec3 v1 = m_vertices[vi1];
     vec3 vnew = (v0 + v1) / 2.f;
 
-    unordered_set<unsigned int> adjFaces;
+    vector<unsigned int> removed_faces;
+    set<unsigned int> adjacent_faces;
     unsigned int vinew = static_cast<unsigned int>(m_vertices.size());
     m_vertices.push_back(vnew);
 
     for(unsigned int neighbor : m_vfadjacency[vi0]) {
-        adjFaces.insert(neighbor);
+        adjacent_faces.insert(neighbor);
     }
     for(unsigned int neighbor : m_vfadjacency[vi1]) {
-        adjFaces.insert(neighbor);
+        adjacent_faces.insert(neighbor);
     }
 
-    std::cout << "Ajd faces -- ";
-    for(unsigned int n : adjFaces) {
-        std::cout << n << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "Rm         -- ";
-    for(unsigned int face : adjFaces) {
-        std::cout << face << " ";
+    for(unsigned int face : adjacent_faces) {
         gfx::face & f = m_faces[face];
         if(f.contains(vi0) && f.contains(vi1)) {
-            this->remove_face(face);
+            if(m_faces.find(face) != m_faces.end()) {
+                this->remove_face(face);
+                removed_faces.push_back(face);
+            }
         } else {
             if(f.contains(vi1)) {
                 f.replace(vi1, vinew);
@@ -313,12 +299,16 @@ void gnut::gfx::mesh::edge_collapse(unsigned int vi0, unsigned int vi1) {
             m_fnormals[face] = glm::normalize(glm::cross(a, b));
         }
     }
-    std::cout << std::endl;
-    // recalculate vertex normal
-    vec3 vnormal(0,0,0);
-    for(unsigned int face : adjFaces) {
 
+    for(unsigned int face : removed_faces) {
+        adjacent_faces.erase(face);
     }
+    // set up vertex in adjacency list
+    for(unsigned int neighbor : adjacent_faces) {
+        m_vfadjacency[vinew].insert(neighbor);
+    }
+    // calculate a normal (not completely accurate since not all normals are re-calculated)
+    this->compute_vnormal(vinew, adjacent_faces);
 }
 
 

@@ -60,6 +60,7 @@ namespace gnut {
 
             void compute_fnormals();
             void compute_vnormals();
+            void compute_vnormal(unsigned int vi, set<unsigned int> & neighbors);
 
             void compute_vfadjacency();
 
@@ -67,10 +68,10 @@ namespace gnut {
 
             vector<vec3> m_vertices;
             vector<vec3> m_vnormals;
-            vector<vec3> m_colors;
 
-            vector<face> m_faces;
-            vector<vec3> m_fnormals;
+            unordered_map<unsigned int, face> m_faces;
+            unordered_map<unsigned int, vec3> m_colors;
+            unordered_map<unsigned int, vec3> m_fnormals;
 
             unordered_map<unsigned int, set<unsigned int>> m_vfadjacency;
 

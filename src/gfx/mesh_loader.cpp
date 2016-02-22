@@ -48,21 +48,22 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
     // get vertices
     pmesh mesh = make_shared<gnut::gfx::mesh>();
     vector<glm::vec3>& vertices = mesh->m_vertices;
-    vector<face>& faces = mesh->m_faces;
+    unordered_map<unsigned int, face>& faces = mesh->m_faces;
     while(num_verts-- > 0 && getline(file_stream, line)) {
         values = gnut::split(line, ' ');
         vertices.push_back(glm::vec3(stof(values[0]), stof(values[1]), stof(values[2])));
     }
 
+    int i = 0;
     size_t face_verts = 0;
-    while(num_faces-- > 0 && getline(file_stream, line)) {
+    while(i < num_faces && getline(file_stream, line)) {
         values = gnut::split(line, ' ');
         face_verts = stoul(values[0]);
         if(face_verts != 3) {
             LOG_ERROR("Error. Invalid number of vertices per face. " << file);
             return nullptr;
         }
-        faces.push_back(face(stoul(values[1]), stoul(values[2]), stoul(values[3])));
+        faces[i++] = face(stoul(values[1]), stoul(values[2]), stoul(values[3]));
     }
 
     mesh->compute_vfadjacency();
