@@ -177,9 +177,11 @@ int main(int argc, char* argv[]) {
     debug->uniform("light_position", glm::vec3(0,0, 400));
 
     gfx::pmesh mesh = gfx::mesh_loader::load("res/models/testpatch.off");
-    mesh->debug(true);
-    main_shader = debug;
     //mesh->print_adjacency();
+
+    main_shader = debug;
+    mesh->debug(true);
+    mesh->edge_collapse(0, 1);
     mesh->generate_buffer();
     //mesh->print_adjacency();
 

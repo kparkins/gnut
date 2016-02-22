@@ -35,6 +35,8 @@ namespace gnut {
             bool contains(unsigned int v);
             void replace(unsigned int vold, unsigned int vnew);
 
+            bool operator==(const face & rhs);
+
             unsigned int v0;
             unsigned int v1;
             unsigned int v2;
@@ -60,7 +62,7 @@ namespace gnut {
 
             void compute_fnormals();
             void compute_vnormals();
-            void compute_vnormal(unsigned int vi, set<unsigned int> & neighbors);
+            void compute_vnormal(unsigned int vi, unordered_set<unsigned int> & neighbors);
 
             void compute_vfadjacency();
 
@@ -73,7 +75,7 @@ namespace gnut {
             unordered_map<unsigned int, vec3> m_colors;
             unordered_map<unsigned int, vec3> m_fnormals;
 
-            unordered_map<unsigned int, set<unsigned int>> m_vfadjacency;
+            unordered_map<unsigned int, unordered_set<unsigned int>> m_vfadjacency;
 
             GLuint m_vao;
             GLuint m_vbo;

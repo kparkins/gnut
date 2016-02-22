@@ -28,6 +28,19 @@ void gnut::gfx::face::replace(unsigned int vold, unsigned int vnew) {
     }
 }
 
+bool gnut::gfx::face::operator==(const face &rhs) {
+    unsigned int min0 = std::min(v0, std::min(v1, v2));
+    unsigned int min1 = std::min(rhs.v0, std::min(rhs.v1, rhs.v2));
+
+    unsigned int max0 = std::max(v0, std::max(v1, v2));
+    unsigned int max1 = std::max(rhs.v0, std::max(rhs.v1, rhs.v2));
+
+    unsigned int mid0 = (v0 > min0 && v0 < max0) ? v0 : ((v1 > min0 && v1 < max0) ?  v1 : v2);
+    unsigned int mid1 = (rhs.v0 > min1 && rhs.v0 < max1) ? rhs.v0 : ((rhs.v1 > min1 && rhs.v1 < max1) ? rhs.v1 : rhs.v2);
+
+    return min0 == min1 && mid0 == mid1 && max0 == max1;
+}
+
 gnut::gfx::mesh::mesh() : m_debug(false) {
     m_bufferdata.clear();
 }
@@ -46,9 +59,9 @@ void gnut::gfx::mesh::generate_buffer() {
     if(m_debug) {
         return this->generate_dbuffer();
     }
-  /*  for(size_t j = 0; j < m_faces.size(); ++j) {
-        vec3 v0 = m_vertices[m_faces[j].v0];
-        vec3 vn0 = m_vnormals[m_faces[j].v0];
+    for(auto it = m_faces.begin(); it != m_faces.end(); ++it) {
+        vec3 v0 = m_vertices[it->second.v0];
+        vec3 vn0 = m_vnormals[it->second.v0];
         m_bufferdata.push_back(v0.x);
         m_bufferdata.push_back(v0.y);
         m_bufferdata.push_back(v0.z);
@@ -56,8 +69,8 @@ void gnut::gfx::mesh::generate_buffer() {
         m_bufferdata.push_back(vn0.y);
         m_bufferdata.push_back(vn0.z);
 
-        vec3 v1 = m_vertices[m_faces[j].v1];
-        vec3 vn1 = m_vnormals[m_faces[j].v1];
+        vec3 v1 = m_vertices[it->second.v1];
+        vec3 vn1 = m_vnormals[it->second.v1];
         m_bufferdata.push_back(v1.x);
         m_bufferdata.push_back(v1.y);
         m_bufferdata.push_back(v1.z);
@@ -65,15 +78,15 @@ void gnut::gfx::mesh::generate_buffer() {
         m_bufferdata.push_back(vn1.y);
         m_bufferdata.push_back(vn1.z);
 
-        vec3 v2 = m_vertices[m_faces[j].v2];
-        vec3 vn2 = m_vnormals[m_faces[j].v2];
+        vec3 v2 = m_vertices[it->second.v2];
+        vec3 vn2 = m_vnormals[it->second.v2];
         m_bufferdata.push_back(v2.x);
         m_bufferdata.push_back(v2.y);
         m_bufferdata.push_back(v2.z);
         m_bufferdata.push_back(vn2.x);
         m_bufferdata.push_back(vn2.y);
         m_bufferdata.push_back(vn2.z);
-    }*/
+    }
 
     glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vbo);
@@ -201,7 +214,7 @@ void gnut::gfx::mesh::compute_vnormals() {
     }
 }
 
-void gnut::gfx::mesh::compute_vnormal(unsigned int vi, set<unsigned int> & neighbors) {
+void gnut::gfx::mesh::compute_vnormal(unsigned int vi, unordered_set<unsigned int> & neighbors) {
     vec3 a, b, vnormal;
     float total_weight = 0.f;
     unordered_map<unsigned int, float> weights;
@@ -269,8 +282,8 @@ void gnut::gfx::mesh::edge_collapse(unsigned int vi0, unsigned int vi1) {
     vec3 v1 = m_vertices[vi1];
     vec3 vnew = (v0 + v1) / 2.f;
 
-    vector<unsigned int> removed_faces;
-    set<unsigned int> adjacent_faces;
+    unordered_set<unsigned int> removed_faces;
+    unordered_set<unsigned int> adjacent_faces;
     unsigned int vinew = static_cast<unsigned int>(m_vertices.size());
     m_vertices.push_back(vnew);
 
@@ -286,7 +299,7 @@ void gnut::gfx::mesh::edge_collapse(unsigned int vi0, unsigned int vi1) {
         if(f.contains(vi0) && f.contains(vi1)) {
             if(m_faces.find(face) != m_faces.end()) {
                 this->remove_face(face);
-                removed_faces.push_back(face);
+                removed_faces.insert(face);
             }
         } else {
             if(f.contains(vi1)) {
@@ -300,7 +313,22 @@ void gnut::gfx::mesh::edge_collapse(unsigned int vi0, unsigned int vi1) {
         }
     }
 
+    /* deal with wings */
     for(unsigned int face : removed_faces) {
+        adjacent_faces.erase(face);
+    }
+    removed_faces.clear();
+    for(unsigned int face : adjacent_faces) {
+        for(unsigned int f2 : adjacent_faces) {
+            if(face != f2 && m_faces[face] == m_faces[f2]) {
+                removed_faces.insert(face);
+                removed_faces.insert(f2);
+            }
+        }
+    }
+
+    for(unsigned int face : removed_faces) {
+        this->remove_face(face);
         adjacent_faces.erase(face);
     }
     // set up vertex in adjacency list
