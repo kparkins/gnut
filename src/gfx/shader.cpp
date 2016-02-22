@@ -47,3 +47,4 @@ GLuint gnut::gfx::shader::id() const {
 GLuint gnut::gfx::shader::type() const {
     return m_type;
 }
+

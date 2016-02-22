@@ -37,7 +37,7 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
     // get number of vertices/faces/edges
     getline(file_stream, line);
     vector<string> values = gnut::split(line, ' ');
-    if(values.size() != 3) {
+    if(values.size() < 2) {
         LOG_ERROR("Error. Missing vertex, face, or edge size information in OFF file " << file);
         return nullptr;
     }

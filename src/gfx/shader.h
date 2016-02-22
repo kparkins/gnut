@@ -7,6 +7,7 @@
 
 #include <string>
 #include <memory>
+#include <unordered_map>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -15,7 +16,7 @@
 
 using std::string;
 using std::shared_ptr;
-
+using std::unordered_map;
 
 class shader_program;
 
@@ -34,6 +35,7 @@ namespace gnut {
 
             GLuint id() const;
             GLuint type() const;
+
 
         protected:
 

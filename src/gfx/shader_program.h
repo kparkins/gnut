@@ -12,6 +12,9 @@
 
 #define GLEW_STATIC
 #include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "logger.h"
 #include "shader.h"
@@ -19,6 +22,8 @@
 using std::vector;
 using std::string;
 using std::shared_ptr;
+
+using namespace glm;
 
 namespace gnut {
     namespace gfx {
@@ -38,12 +43,19 @@ namespace gnut {
 
             GLuint id();
 
+            void uniform(const string & uniform, const mat4 & matrix);
+            void uniform(const string & uniform, const vec3 & vector);
+            void uniform(const string & uniform, float value);
+
         private:
 
             bool m_linked;
             bool m_enabled;
             GLuint m_id;
             vector<GLuint> m_shaders;
+
+            unordered_map<string, GLuint> m_uniforms;
+
 
         };
 

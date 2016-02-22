@@ -3,6 +3,7 @@
  */
 
 #include <iostream>
+#include <unordered_map>
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -19,6 +20,8 @@
 using std::cout;
 using std::endl;
 using std::cerr;
+using std::unordered_map;
+
 using namespace glm;
 using namespace gnut;
 
@@ -26,15 +29,16 @@ static bool left_click;
 static vec3 prev_pos;
 static int window_height;
 static int window_width;
-static glm::mat4 projection;
-static glm::mat4 view;
 static glm::mat4 model;
-static gnut::gfx::shader_program main_shader;
+static glm::mat4 view;
+static glm::mat4 projection;
+static unordered_map<string, gfx::pshader_program> shader_map;
+static gnut::gfx::pshader_program main_shader;
 
-vec3 convert_coords(int x, int y) {
+vec3 trackball_coords(double x, double y) {
     vec3 v;
-    v.x = (2.f * x - window_width) / window_width;
-    v.y = (window_height - 2.f * y) / window_height;
+    v.x = (2.f * static_cast<float>(x) - window_width) / window_width;
+    v.y = (window_height - 2.f * static_cast<float>(y)) / window_height;
     v.z = 0.f;
     float distance = glm::length(v);
     if(distance > 1.f) {
@@ -51,25 +55,21 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 }
 
 static void scroll_callback(GLFWwindow* window, double x, double y) {
-    model = glm::scale(model, glm::vec3(1 + y / 10,1 + y / 10, 1 + y / 10));
+    model = glm::scale(model, glm::vec3(1 + y / 10, 1 + y / 10, 1 + y / 10));
 }
 
 static void mouse_callback(GLFWwindow* window, int button, int action, int mods) {
     if(button == GLFW_MOUSE_BUTTON_LEFT) {
-        if(action == GLFW_PRESS) {
-            double x, y;
-            left_click = true;
-            glfwGetCursorPos(window, &x, &y);
-            prev_pos = convert_coords(x, y);
-        } else if (action == GLFW_RELEASE) {
-            left_click = false;
-        }
+        double x, y;
+        glfwGetCursorPos(window, &x, &y);
+        left_click = !left_click;
+        prev_pos = trackball_coords(x, y);
     }
 }
 
 static void cursor_callback(GLFWwindow* window, double x, double y) {
     if(left_click) {
-        vec3 position = convert_coords(x, y);
+        vec3 position = trackball_coords(x, y);
         float magnitude = glm::length(position - prev_pos);
         if(magnitude > .001f) {
             mat4 rotation;
@@ -87,9 +87,7 @@ static void window_size_callback(GLFWwindow* window, int width, int height) {
     window_height = height;
     glViewport(0, 0, width, height);
     projection = glm::perspective(45.f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 1000.f);
-
-    GLint p = glGetUniformLocation(main_shader.id(), "projection");
-    glUniformMatrix4fv(p, 1, GL_FALSE, glm::value_ptr(projection));
+    main_shader->uniform("projection", projection);
 }
 
 
@@ -97,12 +95,13 @@ static void errorCallback(int error, const char* errorMessage) {
 }
 
 int main(int argc, char* argv[]) {
+    left_click = false;
     window_width = 640;
     window_height = 480;
 
     log::plog console = std::make_shared<log::console>();
-    ::logger->log_level(log::level::trace);
-    ::logger->add(console);
+    logger->log_level(log::level::trace);
+    logger->add(console);
 
     glfwSetErrorCallback(errorCallback);
     if(!glfwInit()) {
@@ -145,39 +144,42 @@ int main(int argc, char* argv[]) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    view = glm::lookAt(vec3(0, 0, 222), vec3(0,0,0), vec3(0,1,0));
+    view = glm::lookAt(vec3(0, 0, 3), vec3(0,0,0), vec3(0,1,0));
     projection = glm::perspective(45.f, static_cast<float>(window_width) / static_cast<float>(window_height), 1.f, 1000.f);
+
+    main_shader = make_shared<gnut::gfx::shader_program>();
+    shader_map.insert(make_pair("diffuse", main_shader));
 
     gfx::shader vertex(GL_VERTEX_SHADER, "res/shaders/basic_lighting.vert");
     gfx::shader frag(GL_FRAGMENT_SHADER, "res/shaders/basic_lighting.frag");
 
-    main_shader.attach(vertex);
-    main_shader.attach(frag);
-    main_shader.link_program();
+    main_shader->attach(vertex);
+    main_shader->attach(frag);
+    main_shader->link_program();
+    main_shader->uniform("view", view);
+    main_shader->uniform("projection", projection);
+    main_shader->uniform("ambient_intensity", .2f);
+    main_shader->uniform("light_color", glm::vec3(.8,.8,.8));
+    main_shader->uniform("light_position", glm::vec3(0,0,400));
+    main_shader->uniform("fragment_color", glm::vec3(.4f, 0.2f, .4f));
 
-    main_shader.enable();
-    GLint v = glGetUniformLocation(main_shader.id(), "view");
-    glUniformMatrix4fv(v, 1, GL_FALSE, glm::value_ptr(view));
+    gfx::shader debug_vertex(GL_VERTEX_SHADER, "res/shaders/debug.vert");
+    gfx::shader debug_frag(GL_FRAGMENT_SHADER, "res/shaders/debug.frag");
+    gfx::pshader_program debug = make_shared<gfx::shader_program>();
+    shader_map.insert(make_pair("debug", debug));
+    debug->attach(debug_vertex);
+    debug->attach(debug_frag);
+    debug->link_program();
+    debug->uniform("view", view);
+    debug->uniform("projection", projection);
+    debug->uniform("ambient_intensity", .2f);
+    debug->uniform("light_color", glm::vec3(.8,.8,.8));
+    debug->uniform("light_position", glm::vec3(0,0, 400));
 
-    GLint p = glGetUniformLocation(main_shader.id(), "projection");
-    glUniformMatrix4fv(p, 1, GL_FALSE, glm::value_ptr(projection));
-
-    GLint ambient_intensity = glGetUniformLocation(main_shader.id(), "ambient_intensity");
-    glUniform1f(ambient_intensity, .2f);
-
-    GLint light_color = glGetUniformLocation(main_shader.id(), "light_color");
-    glUniform3fv(light_color, 1, glm::value_ptr(vec3(.8f, .8f, .8f)));
-
-    GLint light_position = glGetUniformLocation(main_shader.id(), "light_position");
-    glUniform3fv(light_position, 1, glm::value_ptr(vec3(0, 0, 400)));
-
-    GLint fragment_color = glGetUniformLocation(main_shader.id(), "fragment_color");
-    glUniform3fv(fragment_color, 1, glm::value_ptr(vec3(.4f, 0.2f, .4f)));
-
-    main_shader.disable();
-
-    gfx::pmesh cone = gfx::mesh_loader::load("res/models/armadillo.off");
-    cone->generate_buffer();
+    gfx::pmesh mesh = gfx::mesh_loader::load("res/models/testpatch.off");
+    mesh->debug(true);
+    main_shader = debug;
+    mesh->generate_buffer();
 
     // main loop
     while(!glfwWindowShouldClose(main_window)) {
@@ -186,11 +188,10 @@ int main(int argc, char* argv[]) {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        main_shader.enable();
-        GLint m = glGetUniformLocation(main_shader.id(), "model");
-        glUniformMatrix4fv(m, 1, GL_FALSE, glm::value_ptr(model));
-        cone->draw();
-        main_shader.disable();
+        main_shader->uniform("model", model);
+        main_shader->enable();
+        mesh->draw();
+        main_shader->disable();
 
         glfwSwapBuffers(main_window);
     }
