@@ -232,6 +232,24 @@ void gnut::gfx::mesh::compute_vfadjacency() {
     }
 }
 
+void gnut::gfx::mesh::print_adjacency() {
+    std::cout << "Adjacency.. " << std::endl;
+    for(auto & p : m_vfadjacency) {
+        std::cout << p.first << " -- ";
+        for(unsigned int neighbor : p.second) {
+            std::cout << neighbor << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
+void gnut::gfx::mesh::print() {
+    std::cout << "vertices -- " << m_vertices.size() << std::endl;
+    for(int i = 0; i < m_vertices.size(); ++i) {
+        std::cout << "x -- " << m_vertices[i].x << " y -- " << m_vertices[i].y << " z -- " << m_vertices[i].z << std::endl;
+    }
+}
+
 void gnut::gfx::mesh::remove_face(unsigned int f) {
     gfx::face & face = m_faces[f];
 
@@ -272,11 +290,18 @@ void gnut::gfx::mesh::edge_collapse(unsigned int vi0, unsigned int vi1) {
         adjFaces.insert(neighbor);
     }
 
+    std::cout << "Ajd faces -- ";
+    for(unsigned int n : adjFaces) {
+        std::cout << n << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Rm         -- ";
     for(unsigned int face : adjFaces) {
+        std::cout << face << " ";
         gfx::face & f = m_faces[face];
         if(f.contains(vi0) && f.contains(vi1)) {
             this->remove_face(face);
-            adjFaces.erase(face);
         } else {
             if(f.contains(vi1)) {
                 f.replace(vi1, vinew);
@@ -288,7 +313,7 @@ void gnut::gfx::mesh::edge_collapse(unsigned int vi0, unsigned int vi1) {
             m_fnormals[face] = glm::normalize(glm::cross(a, b));
         }
     }
-
+    std::cout << std::endl;
     // recalculate vertex normal
     vec3 vnormal(0,0,0);
     for(unsigned int face : adjFaces) {

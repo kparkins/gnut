@@ -179,7 +179,10 @@ int main(int argc, char* argv[]) {
     gfx::pmesh mesh = gfx::mesh_loader::load("res/models/testpatch.off");
     mesh->debug(true);
     main_shader = debug;
+    mesh->print_adjacency();
+    mesh->edge_collapse(0, 1);
     mesh->generate_buffer();
+    mesh->print_adjacency();
 
     // main loop
     while(!glfwWindowShouldClose(main_window)) {

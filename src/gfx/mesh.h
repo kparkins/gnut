@@ -52,6 +52,8 @@ namespace gnut {
             void generate_dbuffer();
             void generate_colors();
             void debug(bool on);
+            void print_adjacency();
+            void print();
             void draw();
 
         protected:
