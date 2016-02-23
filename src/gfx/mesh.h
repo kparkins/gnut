@@ -53,7 +53,6 @@ namespace gnut {
             void generate_buffer();
             void generate_dbuffer();
             void generate_colors();
-            void debug(bool on);
             float max_vertice();
             glm::vec3 max();
             glm::vec3 min();
@@ -87,8 +86,6 @@ namespace gnut {
 
             glm::vec3 m_max;
             glm::vec3 m_min;
-
-            bool m_debug;
 
             friend class mesh_loader;
 

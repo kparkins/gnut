@@ -41,11 +41,12 @@ static glm::mat4 projection;
 static glm::mat4 view;
 
 static int model_index;
-static std::shared_ptr<model3d> main_model;
+static std::shared_ptr<model3d> curr_model;
 
 static vector<std::shared_ptr<model3d>> models;
-static unordered_map<string, gfx::pshader_program> shader_map;
-static gnut::gfx::pshader_program main_shader;
+static gnut::gfx::pshader_program curr_shader;
+static gnut::gfx::pshader_program diffuse_shader;
+static gnut::gfx::pshader_program debug_shader;
 
 const int NUM_MODELS = 6;
 
@@ -67,25 +68,28 @@ vec3 trackball_coords(double x, double y) {
     return glm::normalize(v);
 }
 
+
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    int num = NUM_MODELS;
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE);
     } else if(key == GLFW_KEY_EQUAL && action == GLFW_PRESS) {
-        model_index = gnut::mod<int, int, int>(model_index + 1, num);
+        curr_model = models[gnut::mod<int, int, int>(++model_index, NUM_MODELS)];
     } else if(key == GLFW_KEY_MINUS && action == GLFW_PRESS) {
-        model_index = gnut::mod<int, int, int>(model_index - 1, num);
+        curr_model = models[gnut::mod<int, int, int>(--model_index, NUM_MODELS)];
+    } else if(key == GLFW_KEY_D && action == GLFW_PRESS) {
+        curr_shader = (curr_shader == debug_shader) ? diffuse_shader : debug_shader;
     }
 }
 
+
 static void scroll_callback(GLFWwindow* window, double x, double y) {
-    main_model->model = glm::scale(main_model->model, glm::vec3(1 + y / 10, 1 + y / 10, 1 + y / 10));
+    curr_model->model = glm::scale(curr_model->model, glm::vec3(1 + y / 10, 1 + y / 10, 1 + y / 10));
 }
 
 static void mouse_callback(GLFWwindow* window, int button, int action, int mods) {
+    double x, y;
+    glfwGetCursorPos(window, &x, &y);
     if(button == GLFW_MOUSE_BUTTON_LEFT) {
-        double x, y;
-        glfwGetCursorPos(window, &x, &y);
         left_click = !left_click;
         prev_pos = trackball_coords(x, y);
     }
@@ -99,7 +103,7 @@ static void cursor_callback(GLFWwindow* window, double x, double y) {
             mat4 rotation;
             float angle = glm::acos(glm::dot(position, prev_pos) / (glm::length(position) * glm::length(prev_pos)));
             vec3 rotation_axis = glm::cross(prev_pos, position);
-            main_model->model = glm::rotate(rotation, angle, rotation_axis) * main_model->model;
+            curr_model->model = glm::rotate(rotation, angle, rotation_axis) * curr_model->model;
         }
         prev_pos = position;
     }
@@ -121,6 +125,7 @@ int main(int argc, char* argv[]) {
     left_click = false;
     window_width = 640;
     window_height = 480;
+    model_index = 0;
 
     log::plog console = std::make_shared<log::console>();
     logger->log_level(log::level::trace);
@@ -171,34 +176,33 @@ int main(int argc, char* argv[]) {
     view = glm::lookAt(eye_position, vec3(0,0,0), vec3(0,1,0));
     projection = glm::perspective(45.f, static_cast<float>(window_width) / static_cast<float>(window_height), 1.f, 1000.f);
 
-    main_shader = make_shared<gnut::gfx::shader_program>();
-    shader_map.insert(make_pair("diffuse", main_shader));
+    diffuse_shader = make_shared<gnut::gfx::shader_program>();
 
     gfx::shader vertex(GL_VERTEX_SHADER, "res/shaders/basic_lighting.vert");
     gfx::shader frag(GL_FRAGMENT_SHADER, "res/shaders/basic_lighting.frag");
 
-    main_shader->attach(vertex);
-    main_shader->attach(frag);
-    main_shader->link_program();
-    main_shader->uniform("view", view);
-    main_shader->uniform("projection", projection);
-    main_shader->uniform("ambient_intensity", .2f);
-    main_shader->uniform("light_color", glm::vec3(.8,.8,.8));
-    main_shader->uniform("light_position", glm::vec3(0,0,400));
-    main_shader->uniform("fragment_color", glm::vec3(.4f, 0.2f, .4f));
+    diffuse_shader->attach(vertex);
+    diffuse_shader->attach(frag);
+    diffuse_shader->link_program();
+    diffuse_shader->uniform("view", view);
+    diffuse_shader->uniform("projection", projection);
+    diffuse_shader->uniform("ambient_intensity", .2f);
+    diffuse_shader->uniform("light_color", glm::vec3(.8, .8, .8));
+    diffuse_shader->uniform("light_position", glm::vec3(0, 0, 40));
+    diffuse_shader->uniform("fragment_color", glm::vec3(.4f, 0.2f, .4f));
 
     gfx::shader debug_vertex(GL_VERTEX_SHADER, "res/shaders/debug.vert");
     gfx::shader debug_frag(GL_FRAGMENT_SHADER, "res/shaders/debug.frag");
-    gfx::pshader_program debug = make_shared<gfx::shader_program>();
-    shader_map.insert(make_pair("debug", debug));
-    debug->attach(debug_vertex);
-    debug->attach(debug_frag);
-    debug->link_program();
-    debug->uniform("view", view);
-    debug->uniform("projection", projection);
-    debug->uniform("ambient_intensity", .2f);
-    debug->uniform("light_color", glm::vec3(.8,.8,.8));
-    debug->uniform("light_position", glm::vec3(0,0, 400));
+    debug_shader = make_shared<gfx::shader_program>();
+
+    debug_shader->attach(debug_vertex);
+    debug_shader->attach(debug_frag);
+    debug_shader->link_program();
+    debug_shader->uniform("view", view);
+    debug_shader->uniform("projection", projection);
+    debug_shader->uniform("ambient_intensity", .2f);
+    debug_shader->uniform("light_color", glm::vec3(.8,.8,.8));
+    debug_shader->uniform("light_position", glm::vec3(0,0, 40));
 
     std::string file;
     for(int i = 0; i < NUM_MODELS; ++i) {
@@ -212,7 +216,8 @@ int main(int argc, char* argv[]) {
         models.push_back(m);
     }
 
-    model_index = 0;
+    curr_model = models[0];
+    curr_shader = diffuse_shader;
     // main loop
     while(!glfwWindowShouldClose(main_window)) {
         glfwPollEvents();
@@ -220,12 +225,11 @@ int main(int argc, char* argv[]) {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        main_model = models[model_index];
-        main_shader->uniform("model", main_model->model);
-        main_shader->uniform("projection", projection);
-        main_shader->enable();
-        main_model->mesh->draw();
-        main_shader->disable();
+        curr_shader->uniform("model", curr_model->model);
+        curr_shader->uniform("projection", projection);
+        curr_shader->enable();
+        curr_model->mesh->draw();
+        curr_shader->disable();
 
         glfwSwapBuffers(main_window);
     }

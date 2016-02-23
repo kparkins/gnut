@@ -41,7 +41,7 @@ bool gnut::gfx::face::operator==(const face &rhs) {
     return min0 == min1 && mid0 == mid1 && max0 == max1;
 }
 
-gnut::gfx::mesh::mesh() : m_debug(false), m_maxvertice(FLT_MIN),
+gnut::gfx::mesh::mesh() : m_maxvertice(FLT_MIN),
                           m_max(glm::vec3(FLT_MIN, FLT_MIN, FLT_MIN)),
                           m_min(glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX))
 {
@@ -59,59 +59,6 @@ void gnut::gfx::mesh::generate_buffer() {
         glDeleteBuffers(1, &m_vbo);
         glDeleteVertexArrays(1, &m_vao);
     }
-    if(m_debug) {
-        return this->generate_dbuffer();
-    }
-    for(auto it = m_faces.begin(); it != m_faces.end(); ++it) {
-        vec3 v0 = m_vertices[it->second.v0];
-        vec3 vn0 = m_vnormals[it->second.v0];
-        m_bufferdata.push_back(v0.x);
-        m_bufferdata.push_back(v0.y);
-        m_bufferdata.push_back(v0.z);
-        m_bufferdata.push_back(vn0.x);
-        m_bufferdata.push_back(vn0.y);
-        m_bufferdata.push_back(vn0.z);
-
-        vec3 v1 = m_vertices[it->second.v1];
-        vec3 vn1 = m_vnormals[it->second.v1];
-        m_bufferdata.push_back(v1.x);
-        m_bufferdata.push_back(v1.y);
-        m_bufferdata.push_back(v1.z);
-        m_bufferdata.push_back(vn1.x);
-        m_bufferdata.push_back(vn1.y);
-        m_bufferdata.push_back(vn1.z);
-
-        vec3 v2 = m_vertices[it->second.v2];
-        vec3 vn2 = m_vnormals[it->second.v2];
-        m_bufferdata.push_back(v2.x);
-        m_bufferdata.push_back(v2.y);
-        m_bufferdata.push_back(v2.z);
-        m_bufferdata.push_back(vn2.x);
-        m_bufferdata.push_back(vn2.y);
-        m_bufferdata.push_back(vn2.z);
-    }
-
-    glGenVertexArrays(1, &m_vao);
-    glGenBuffers(1, &m_vbo);
-
-    glBindVertexArray(m_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-
-    size_t size = (2 * sizeof(float) * 3 ) * 3 * m_faces.size();;
-    GLsizei stride = 6 * sizeof(GL_FLOAT);
-
-    glBufferData(GL_ARRAY_BUFFER, size, &m_bufferdata[0], GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<GLvoid*>(0));
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<GLvoid*>(3 * sizeof(GL_FLOAT)));
-
-    glBindVertexArray(0);
-}
-
-void gnut::gfx::mesh::generate_dbuffer() {
     for(auto it = m_faces.begin(); it != m_faces.end(); ++it) {
         vec3 color = m_colors[it->first];
         vec3 v0 = m_vertices[it->second.v0];
@@ -173,7 +120,6 @@ void gnut::gfx::mesh::generate_dbuffer() {
 
     glBindVertexArray(0);
 }
-
 void gnut::gfx::mesh::generate_colors() {
     srand(time(NULL));
     float r, g, b;
@@ -183,12 +129,6 @@ void gnut::gfx::mesh::generate_colors() {
         b = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
         m_colors[it->first] = vec3(r, g, b);
     }
-}
-
-void gnut::gfx::mesh::debug(bool on) {
-    m_debug = on;
-    m_colors.clear();
-    this->generate_colors();
 }
 
 void gnut::gfx::mesh::draw() {

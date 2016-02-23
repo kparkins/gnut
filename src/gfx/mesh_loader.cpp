@@ -85,6 +85,7 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
     mesh->compute_vfadjacency();
     mesh->compute_fnormals();
     mesh->compute_vnormals();
+    mesh->generate_colors();
 
     return mesh;
 }
