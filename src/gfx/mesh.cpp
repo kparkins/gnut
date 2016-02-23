@@ -41,7 +41,10 @@ bool gnut::gfx::face::operator==(const face &rhs) {
     return min0 == min1 && mid0 == mid1 && max0 == max1;
 }
 
-gnut::gfx::mesh::mesh() : m_debug(false) {
+gnut::gfx::mesh::mesh() : m_debug(false), m_maxvertice(FLT_MIN),
+                          m_max(glm::vec3(FLT_MIN, FLT_MIN, FLT_MIN)),
+                          m_min(glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX))
+{
     m_bufferdata.clear();
 }
 
@@ -282,8 +285,8 @@ void gnut::gfx::mesh::edge_collapse(unsigned int vi0, unsigned int vi1) {
     vec3 v1 = m_vertices[vi1];
     vec3 vnew = (v0 + v1) / 2.f;
 
-    unordered_set<unsigned int> removed_faces;
     unordered_set<unsigned int> adjacent_faces;
+    unordered_set<unsigned int> removed_faces;
     unsigned int vinew = static_cast<unsigned int>(m_vertices.size());
     m_vertices.push_back(vnew);
 
@@ -295,29 +298,23 @@ void gnut::gfx::mesh::edge_collapse(unsigned int vi0, unsigned int vi1) {
     }
 
     for(unsigned int face : adjacent_faces) {
-        gfx::face & f = m_faces[face];
+        gfx::face f = m_faces[face];
         if(f.contains(vi0) && f.contains(vi1)) {
-            if(m_faces.find(face) != m_faces.end()) {
-                this->remove_face(face);
-                removed_faces.insert(face);
-            }
+            this->remove_face(face);
+            removed_faces.insert(face);
         } else {
             if(f.contains(vi1)) {
                 f.replace(vi1, vinew);
             } else if(f.contains(vi0)) {
                 f.replace(vi0, vinew);
             }
+            m_faces[face] = f;
             vec3 a = m_vertices[f.v1] - m_vertices[f.v0];
             vec3 b = m_vertices[f.v2] - m_vertices[f.v0];
             m_fnormals[face] = glm::normalize(glm::cross(a, b));
         }
     }
 
-    /* deal with wings */
-    for(unsigned int face : removed_faces) {
-        adjacent_faces.erase(face);
-    }
-    removed_faces.clear();
     for(unsigned int face : adjacent_faces) {
         for(unsigned int f2 : adjacent_faces) {
             if(face != f2 && m_faces[face] == m_faces[f2]) {
@@ -327,16 +324,32 @@ void gnut::gfx::mesh::edge_collapse(unsigned int vi0, unsigned int vi1) {
         }
     }
 
-    for(unsigned int face : removed_faces) {
+    for(auto face : removed_faces) {
         this->remove_face(face);
         adjacent_faces.erase(face);
     }
-    // set up vertex in adjacency list
+
     for(unsigned int neighbor : adjacent_faces) {
         m_vfadjacency[vinew].insert(neighbor);
     }
-    // calculate a normal (not completely accurate since not all normals are re-calculated)
-    this->compute_vnormal(vinew, adjacent_faces);
+
+    for(unsigned int neighbor : adjacent_faces) {
+        gfx::face & f = m_faces[neighbor];
+        this->compute_vnormal(f.v0, m_vfadjacency[f.v0]);
+        this->compute_vnormal(f.v1, m_vfadjacency[f.v1]);
+        this->compute_vnormal(f.v2, m_vfadjacency[f.v2]);
+    }
+    this->compute_vnormal(vinew, m_vfadjacency[vinew]);
 }
 
+float gnut::gfx::mesh::max_vertice() {
+    return m_maxvertice;
+}
 
+glm::vec3 gnut::gfx::mesh::max() {
+    return m_max;
+}
+
+glm::vec3 gnut::gfx::mesh::min() {
+    return m_min;
+}

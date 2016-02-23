@@ -25,15 +25,34 @@ using std::unordered_map;
 using namespace glm;
 using namespace gnut;
 
+
+typedef struct model3d {
+    glm::mat4 model;
+    gfx::pmesh mesh;
+}model3d;
+
 static bool left_click;
 static vec3 prev_pos;
 static int window_height;
 static int window_width;
-static glm::mat4 model;
-static glm::mat4 view;
+
+static glm::vec3 eye_position;
 static glm::mat4 projection;
+static glm::mat4 view;
+
+static int model_index;
+static std::shared_ptr<model3d> main_model;
+
+static vector<std::shared_ptr<model3d>> models;
 static unordered_map<string, gfx::pshader_program> shader_map;
 static gnut::gfx::pshader_program main_shader;
+
+const int NUM_MODELS = 6;
+
+static const string model_files[NUM_MODELS] = {
+        "testpatch.off", "armadillo.off", "teapot.off",
+        "plane.off", "torus.off", "ico.off"
+};
 
 vec3 trackball_coords(double x, double y) {
     vec3 v;
@@ -49,13 +68,18 @@ vec3 trackball_coords(double x, double y) {
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    int num = NUM_MODELS;
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE);
+    } else if(key == GLFW_KEY_EQUAL && action == GLFW_PRESS) {
+        model_index = gnut::mod<int, int, int>(model_index + 1, num);
+    } else if(key == GLFW_KEY_MINUS && action == GLFW_PRESS) {
+        model_index = gnut::mod<int, int, int>(model_index - 1, num);
     }
 }
 
 static void scroll_callback(GLFWwindow* window, double x, double y) {
-    model = glm::scale(model, glm::vec3(1 + y / 10, 1 + y / 10, 1 + y / 10));
+    main_model->model = glm::scale(main_model->model, glm::vec3(1 + y / 10, 1 + y / 10, 1 + y / 10));
 }
 
 static void mouse_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -75,7 +99,7 @@ static void cursor_callback(GLFWwindow* window, double x, double y) {
             mat4 rotation;
             float angle = glm::acos(glm::dot(position, prev_pos) / (glm::length(position) * glm::length(prev_pos)));
             vec3 rotation_axis = glm::cross(prev_pos, position);
-            model = glm::rotate(rotation, angle, rotation_axis) * model;
+            main_model->model = glm::rotate(rotation, angle, rotation_axis) * main_model->model;
         }
         prev_pos = position;
     }
@@ -87,7 +111,6 @@ static void window_size_callback(GLFWwindow* window, int width, int height) {
     window_height = height;
     glViewport(0, 0, width, height);
     projection = glm::perspective(45.f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 1000.f);
-    main_shader->uniform("projection", projection);
 }
 
 
@@ -144,7 +167,8 @@ int main(int argc, char* argv[]) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    view = glm::lookAt(vec3(0, 0, 4), vec3(0,0,0), vec3(0,1,0));
+    eye_position = glm::vec3(0,0,4);
+    view = glm::lookAt(eye_position, vec3(0,0,0), vec3(0,1,0));
     projection = glm::perspective(45.f, static_cast<float>(window_width) / static_cast<float>(window_height), 1.f, 1000.f);
 
     main_shader = make_shared<gnut::gfx::shader_program>();
@@ -176,15 +200,19 @@ int main(int argc, char* argv[]) {
     debug->uniform("light_color", glm::vec3(.8,.8,.8));
     debug->uniform("light_position", glm::vec3(0,0, 400));
 
-    gfx::pmesh mesh = gfx::mesh_loader::load("res/models/testpatch.off");
-    //mesh->print_adjacency();
+    std::string file;
+    for(int i = 0; i < NUM_MODELS; ++i) {
+        std::shared_ptr<model3d> m = std::make_shared<model3d>();
+        file = "res/models/";
+        file += std::string(model_files[i]);
+        m->mesh = gfx::mesh_loader::load(file);
+        float scale = glm::length(eye_position) / m->mesh->max_vertice() / 2.f;
+        m->model = glm::scale(m->model, glm::vec3(scale, scale, scale));
+        m->mesh->generate_buffer();
+        models.push_back(m);
+    }
 
-    main_shader = debug;
-    mesh->debug(true);
-    mesh->edge_collapse(0, 1);
-    mesh->generate_buffer();
-    //mesh->print_adjacency();
-
+    model_index = 0;
     // main loop
     while(!glfwWindowShouldClose(main_window)) {
         glfwPollEvents();
@@ -192,9 +220,11 @@ int main(int argc, char* argv[]) {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        main_shader->uniform("model", model);
+        main_model = models[model_index];
+        main_shader->uniform("model", main_model->model);
+        main_shader->uniform("projection", projection);
         main_shader->enable();
-        mesh->draw();
+        main_model->mesh->draw();
         main_shader->disable();
 
         glfwSwapBuffers(main_window);

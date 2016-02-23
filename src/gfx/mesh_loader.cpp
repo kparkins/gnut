@@ -51,7 +51,23 @@ gnut::gfx::pmesh gnut::gfx::mesh_loader::load_off(const string & file) {
     unordered_map<unsigned int, face>& faces = mesh->m_faces;
     while(num_verts-- > 0 && getline(file_stream, line)) {
         values = gnut::split(line, ' ');
-        vertices.push_back(glm::vec3(stof(values[0]), stof(values[1]), stof(values[2])));
+        float v0 = stof(values[0]);
+        float v1 = stof(values[1]);
+        float v2 = stof(values[2]);
+        glm::vec3 & min = mesh->m_min;
+        glm::vec3 & max = mesh->m_max;
+        min.x = std::min(min.x, v0);
+        max.x = std::max(max.x, v0);
+        min.y = std::min(min.y, v1);
+        max.y = std::max(max.y, v1);
+        min.z = std::min(min.z, v2);
+        max.z = std::max(max.z, v2);
+
+        float tmax = std::max(std::abs(v0), std::max(std::abs(v1), std::abs(v2)));
+        if(tmax > mesh->m_maxvertice) {
+            mesh->m_maxvertice = tmax;
+        }
+        vertices.push_back(glm::vec3(v0, v1, v2));
     }
 
     int i = 0;

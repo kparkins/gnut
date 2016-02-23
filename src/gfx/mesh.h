@@ -54,6 +54,9 @@ namespace gnut {
             void generate_dbuffer();
             void generate_colors();
             void debug(bool on);
+            float max_vertice();
+            glm::vec3 max();
+            glm::vec3 min();
             void print_adjacency();
             void print();
             void draw();
@@ -79,6 +82,11 @@ namespace gnut {
 
             GLuint m_vao;
             GLuint m_vbo;
+
+            float m_maxvertice;
+
+            glm::vec3 m_max;
+            glm::vec3 m_min;
 
             bool m_debug;
 
