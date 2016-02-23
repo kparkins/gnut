@@ -78,6 +78,11 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         curr_model = models[gnut::mod<int, int, int>(--model_index, NUM_MODELS)];
     } else if(key == GLFW_KEY_D && action == GLFW_PRESS) {
         curr_shader = (curr_shader == debug_shader) ? diffuse_shader : debug_shader;
+    } else if(key == GLFW_KEY_C && action == GLFW_PRESS) {
+        curr_model->mesh->print_adjacency();
+        curr_model->mesh->edge_collapse(0, 1);
+        curr_model->mesh->generate_buffer();
+        curr_model->mesh->print_adjacency();
     }
 }
 
@@ -210,7 +215,7 @@ int main(int argc, char* argv[]) {
         file = "res/models/";
         file += std::string(model_files[i]);
         m->mesh = gfx::mesh_loader::load(file);
-        float scale = glm::length(eye_position) / m->mesh->max_vertice() / 2.f;
+        float scale = glm::length(eye_position) / m->mesh->max_vertice() / 3.f;
         m->model = glm::scale(m->model, glm::vec3(scale, scale, scale));
         m->mesh->generate_buffer();
         models.push_back(m);
@@ -218,6 +223,7 @@ int main(int argc, char* argv[]) {
 
     curr_model = models[0];
     curr_shader = diffuse_shader;
+
     // main loop
     while(!glfwWindowShouldClose(main_window)) {
         glfwPollEvents();

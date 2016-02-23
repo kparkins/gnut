@@ -1,6 +1,7 @@
 #ifndef GNUT_MESH_H
 #define GNUT_MESH_H
 
+#include <stdint.h>
 #include <set>
 #include <vector>
 #include <memory>
@@ -27,6 +28,16 @@ using namespace glm;
 namespace gnut {
     namespace gfx {
 
+        typedef struct quadric {
+            quadric operator+(const quadric & q);
+            float m[4][4];
+        }quadric;
+
+        typedef struct edge {
+            unsigned int v0;
+            unsigned int v1;
+        }edge;
+
         typedef struct face {
             face();
             face(unsigned int v0, unsigned int v1, unsigned int v2);
@@ -51,8 +62,8 @@ namespace gnut {
             void remove_face(unsigned int f);
             void edge_collapse(unsigned int vi0, unsigned int vi1);
             void generate_buffer();
-            void generate_dbuffer();
             void generate_colors();
+
             float max_vertice();
             glm::vec3 max();
             glm::vec3 min();
@@ -65,6 +76,9 @@ namespace gnut {
             void compute_fnormals();
             void compute_vnormals();
             void compute_vnormal(unsigned int vi, unordered_set<unsigned int> & neighbors);
+            void compute_vquadrics();
+            quadric compute_quadric(glm::vec4 abcd);
+            void compute_pairs();
 
             void compute_vfadjacency();
 
@@ -73,10 +87,12 @@ namespace gnut {
             vector<vec3> m_vertices;
             vector<vec3> m_vnormals;
 
+            unordered_map<unsigned int, quadric> m_vquadrics;
             unordered_map<unsigned int, face> m_faces;
             unordered_map<unsigned int, vec3> m_colors;
             unordered_map<unsigned int, vec3> m_fnormals;
 
+            unordered_map<uint64_t, edge> m_edges;
             unordered_map<unsigned int, unordered_set<unsigned int>> m_vfadjacency;
 
             GLuint m_vao;

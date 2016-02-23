@@ -1,6 +1,32 @@
 #include <time.h>
 #include "mesh.h"
 
+gnut::gfx::quadric gnut::gfx::quadric::operator+(const gfx::quadric & q)  {
+    quadric qn;
+    qn.m[0][0] = m[0][0] + q.m[0][0];
+    qn.m[0][1] = m[0][1] + q.m[0][1];
+    qn.m[0][2] = m[0][2] + q.m[0][2];
+    qn.m[0][3] = m[0][3] + q.m[0][3];
+
+    qn.m[1][0] = m[0][0] + q.m[1][0];
+    qn.m[1][1] = m[0][1] + q.m[1][1];
+    qn.m[1][2] = m[0][2] + q.m[1][2];
+    qn.m[1][3] = m[0][3] + q.m[1][3];
+
+    qn.m[2][0] = m[0][0] + q.m[2][0];
+    qn.m[2][1] = m[0][1] + q.m[2][1];
+    qn.m[2][2] = m[0][2] + q.m[2][2];
+    qn.m[2][3] = m[0][3] + q.m[2][3];
+
+    qn.m[3][0] = m[3][0] + q.m[3][0];
+    qn.m[3][1] = m[3][1] + q.m[3][1];
+    qn.m[3][2] = m[3][2] + q.m[3][2];
+    qn.m[3][3] = m[3][3] + q.m[3][3];
+
+    return qn;
+}
+
+
 gnut::gfx::face::face() {
 }
 
@@ -213,6 +239,15 @@ void gnut::gfx::mesh::remove_face(unsigned int f) {
     m_vfadjacency[face.v0].erase(f);
     m_vfadjacency[face.v1].erase(f);
     m_vfadjacency[face.v2].erase(f);
+    if(m_vfadjacency[face.v0].size() == 0) {
+        m_vfadjacency.erase(face.v0);
+    }
+    if(m_vfadjacency[face.v1].size() == 0) {
+        m_vfadjacency.erase(face.v1);
+    }
+    if(m_vfadjacency[face.v2].size() == 0) {
+        m_vfadjacency.erase(face.v2);
+    }
     m_faces.erase(f);
     m_fnormals.erase(f);
 }
@@ -273,6 +308,9 @@ void gnut::gfx::mesh::edge_collapse(unsigned int vi0, unsigned int vi1) {
         m_vfadjacency[vinew].insert(neighbor);
     }
 
+    m_vfadjacency.erase(vi0);
+    m_vfadjacency.erase(vi1);
+
     for(unsigned int neighbor : adjacent_faces) {
         gfx::face & f = m_faces[neighbor];
         this->compute_vnormal(f.v0, m_vfadjacency[f.v0]);
@@ -292,4 +330,69 @@ glm::vec3 gnut::gfx::mesh::max() {
 
 glm::vec3 gnut::gfx::mesh::min() {
     return m_min;
+}
+
+void gnut::gfx::mesh::compute_vquadrics() {
+    for(int i = 0; i < m_vertices.size(); ++i) {
+        quadric q;
+        glm::vec3 vertex = m_vertices[i];
+        unordered_set<unsigned int> & adjacent_faces = m_vfadjacency[i];
+        for(auto it = adjacent_faces.begin(); it != adjacent_faces.end(); ++it) {
+            glm::vec3 normal = m_fnormals[*it];
+            float d = -(normal.x * vertex.x + normal.y * vertex.y + normal.z * vertex.z);
+            q = q + this->compute_quadric(glm::vec4(normal.x, normal.y, normal.z, d));
+        }
+    }
+    this->compute_pairs();
+}
+
+gnut::gfx::quadric gnut::gfx::mesh::compute_quadric(glm::vec4 abcd) {
+    quadric q;
+    q.m[0][0] = abcd.x * abcd.x;
+    q.m[0][1] = abcd.x * abcd.y;
+    q.m[0][2] = abcd.x * abcd.z;
+    q.m[0][3] = abcd.x * abcd.w;
+
+    q.m[1][0] = abcd.x * abcd.y;
+    q.m[1][1] = abcd.y * abcd.y;
+    q.m[1][2] = abcd.y * abcd.z;
+    q.m[1][3] = abcd.y * abcd.w;
+
+    q.m[2][0] = abcd.x * abcd.z;
+    q.m[2][1] = abcd.y * abcd.z;
+    q.m[2][2] = abcd.z * abcd.z;
+    q.m[2][3] = abcd.z * abcd.w;
+
+    q.m[3][0] = abcd.x * abcd.w;
+    q.m[3][1] = abcd.y * abcd.w;
+    q.m[3][2] = abcd.z * abcd.w;
+    q.m[3][3] = abcd.w * abcd.w;
+    return q;
+}
+
+void gnut::gfx::mesh::compute_pairs() {
+    for(auto it = m_faces.begin(); it != m_faces.end(); ++it) {
+        gfx::face & f = it->second;
+        gfx::edge e0;
+        unsigned int v0 = std::min(f.v0, f.v1);
+        unsigned int v1 = std::max(f.v0, f.v1);
+        uint64_t k0 = (static_cast<uint64_t>(v0) << 32) | v1;
+        e0.v0 = v0;
+        e0.v1 = v1;
+        m_edges[k0] = e0;
+
+        v0 = std::min(f.v1, f.v2);
+        v1 = std::max(f.v1, f.v2);
+        k0 = (static_cast<uint64_t>(v0) << 32) | v1;
+        e0.v0 = v0;
+        e0.v1 = v1;
+        m_edges[k0] = e0;
+
+        v0 = std::min(f.v0, f.v2);
+        v1 = std::max(f.v0, f.v2);
+        k0 = (static_cast<uint64_t>(v0) << 32) | v1;
+        e0.v0 = v0;
+        e0.v1 = v1;
+        m_edges[k0] = e0;
+    }
 }
