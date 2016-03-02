@@ -10,7 +10,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 #include <shader.h>
+#include "skybox.h"
 
 #include "logger.h"
 #include "console.h"
@@ -22,13 +24,14 @@ using std::endl;
 using std::cerr;
 using std::unordered_map;
 
-using namespace glm;
 using namespace gnut;
+using namespace gnut::gfx;
+using namespace glm;
 
 
 typedef struct model3d {
     glm::mat4 model;
-    gfx::pmesh mesh;
+    gnut::gfx::pmesh mesh;
 }model3d;
 
 static bool left_click;
@@ -43,16 +46,25 @@ static glm::mat4 view;
 static int model_index;
 static std::shared_ptr<model3d> curr_model;
 
+static std::shared_ptr<gfx::skybox> main_skybox;
 static vector<std::shared_ptr<model3d>> models;
 static gnut::gfx::pshader_program curr_shader;
 static gnut::gfx::pshader_program diffuse_shader;
 static gnut::gfx::pshader_program debug_shader;
+static gnut::gfx::pshader_program skybox_shader;
 
 const int NUM_MODELS = 6;
 
 static const string model_files[NUM_MODELS] = {
         "testpatch.off", "armadillo.off", "teapot.off",
         "plane.off", "torus.off", "ico.off"
+};
+
+
+static const string skybox_folder = "res/images/";
+static vector<string> skybox_images = {
+        "res/images/right.jpg", "res/images/left.jpg", "res/images/top.jpg",
+        "res/images/bottom.jpg", "res/images/back.jpg", "res/images/front.jpg"
 };
 
 vec3 trackball_coords(double x, double y) {
@@ -78,11 +90,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         curr_model = models[gnut::mod<int, int, int>(--model_index, NUM_MODELS)];
     } else if(key == GLFW_KEY_D && action == GLFW_PRESS) {
         curr_shader = (curr_shader == debug_shader) ? diffuse_shader : debug_shader;
-    } else if(key == GLFW_KEY_C && action == GLFW_PRESS) {
-        curr_model->mesh->print_adjacency();
-        curr_model->mesh->edge_collapse(0, 1);
-        curr_model->mesh->generate_buffer();
-        curr_model->mesh->print_adjacency();
     }
 }
 
@@ -136,6 +143,7 @@ int main(int argc, char* argv[]) {
     logger->log_level(log::level::trace);
     logger->add(console);
 
+
     glfwSetErrorCallback(errorCallback);
     if(!glfwInit()) {
         exit(EXIT_FAILURE);
@@ -177,9 +185,12 @@ int main(int argc, char* argv[]) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    eye_position = glm::vec3(0,0,4);
-    view = glm::lookAt(eye_position, vec3(0,0,0), vec3(0,1,0));
-    projection = glm::perspective(45.f, static_cast<float>(window_width) / static_cast<float>(window_height), 1.f, 1000.f);
+    main_skybox = make_shared<gfx::skybox>();
+    main_skybox->load(skybox_images);
+
+    eye_position = glm::vec3(0,0,0);
+    view = glm::lookAt(eye_position, vec3(1,0,-1), glm::normalize(vec3(0,1,0)));
+    projection = glm::perspective(45.f, static_cast<float>(window_width) / static_cast<float>(window_height), .1f, 1000.f);
 
     diffuse_shader = make_shared<gnut::gfx::shader_program>();
 
@@ -189,8 +200,6 @@ int main(int argc, char* argv[]) {
     diffuse_shader->attach(vertex);
     diffuse_shader->attach(frag);
     diffuse_shader->link_program();
-    diffuse_shader->uniform("view", view);
-    diffuse_shader->uniform("projection", projection);
     diffuse_shader->uniform("ambient_intensity", .2f);
     diffuse_shader->uniform("light_color", glm::vec3(.8, .8, .8));
     diffuse_shader->uniform("light_position", glm::vec3(0, 0, 40));
@@ -203,11 +212,18 @@ int main(int argc, char* argv[]) {
     debug_shader->attach(debug_vertex);
     debug_shader->attach(debug_frag);
     debug_shader->link_program();
-    debug_shader->uniform("view", view);
-    debug_shader->uniform("projection", projection);
     debug_shader->uniform("ambient_intensity", .2f);
     debug_shader->uniform("light_color", glm::vec3(.8,.8,.8));
     debug_shader->uniform("light_position", glm::vec3(0,0, 40));
+
+    gfx::shader skybox_vertex(GL_VERTEX_SHADER, "res/shaders/skybox.vert");
+    gfx::shader skybox_frag(GL_FRAGMENT_SHADER, "res/shaders/skybox.frag");
+    skybox_shader = make_shared<gfx::shader_program>();
+
+    skybox_shader->attach(skybox_vertex);
+    skybox_shader->attach(skybox_frag);
+    skybox_shader->link_program();
+
 
     std::string file;
     for(int i = 0; i < NUM_MODELS; ++i) {
@@ -231,7 +247,14 @@ int main(int argc, char* argv[]) {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
+        skybox_shader->uniform("view", glm::mat4(glm::mat3(view)));
+        skybox_shader->uniform("projection", projection);
+        skybox_shader->enable();
+        main_skybox->draw();
+        skybox_shader->disable();
+
         curr_shader->uniform("model", curr_model->model);
+        curr_shader->uniform("view", view);
         curr_shader->uniform("projection", projection);
         curr_shader->enable();
         curr_model->mesh->draw();

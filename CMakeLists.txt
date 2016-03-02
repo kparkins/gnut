@@ -11,8 +11,8 @@ find_package(PkgConfig REQUIRED)
 find_package(OpenGL REQUIRED)
 
 if(WIN32)
-  include_directories("lib/glfw/include" "lib/glm" "lib/glew/include" )
-  link_directories("lib/glew/lib/Release/x64" "lib/glfw/lib-mingw-w64")
+  include_directories("lib/glfw/include" "lib/glm" "lib/glew/include" "lib/soil/include")
+  link_directories("lib/glew/lib/Release/x64" "lib/glfw/lib-mingw-w64" "lib/soil")
 else(WIN32)
   find_package(glfw3 REQUIRED)
   find_package(GLM REQUIRED)
@@ -34,13 +34,6 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_range_for)
 set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
 
-target_link_libraries(${PROJECT_NAME} 
-	${GLFW3_LIBRARY} 
-	${OPENGL_LIBRARIES}
-	${GLEW_LIBRARY} 
-	${COCOA_LIBRARY} 
-	${COREVID_LIBRARY}
-	${IOKIT_LIBRARY})
 
 if(WIN32)
 target_link_libraries(${PROJECT_NAME}
@@ -48,8 +41,19 @@ target_link_libraries(${PROJECT_NAME}
 	glfw3 
 	glew32s
 	glu32
+    libSOIL.a
 	opengl32)
 endif(WIN32)
+
+if(APPLE)
+target_link_libraries(${PROJECT_NAME}
+      ${GLFW3_LIBRARY}
+      ${OPENGL_LIBRARIES}
+      ${GLEW_LIBRARY}
+      ${COCOA_LIBRARY}
+      ${COREVID_LIBRARY}
+      ${IOKIT_LIBRARY})
+endif(APPLE)
 
 if(UNIX)
 target_link_libraries(${PROJECT_NAME}
