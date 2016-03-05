@@ -2,16 +2,19 @@
 
 uniform vec3 light_color;
 uniform vec4 light_direction;
-uniform vec3 fragment_color;
 uniform float ambient_intensity;
+
+uniform sampler2D texture_sampler;
 
 in vec3 fragment_normal;
 in vec3 fragment_position;
+in vec2 fragment_texcoords;
 
 out vec4 final_color;
 
 void main() {
-    vec3 ambient = ambient_intensity * light_color;
+    vec3 fragment_color = texture(texture_sampler, fragment_texcoords).rgb;
+    vec3 ambient = ambient_intensity * fragment_color;
 
     float diffuse_intensity;
     if(light_direction.w == 0) {

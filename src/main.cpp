@@ -12,12 +12,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <shader.h>
+#include <ground.h>
 #include "skybox.h"
 
 #include "logger.h"
 #include "console.h"
 #include "mesh_loader.h"
-#include "shader_program.h"
 
 using std::cout;
 using std::endl;
@@ -45,6 +45,7 @@ static glm::mat4 view;
 
 static int model_index;
 static std::shared_ptr<model3d> curr_model;
+static std::shared_ptr<gnut::gfx::ground> main_ground;
 
 static std::shared_ptr<gfx::skybox> main_skybox;
 static vector<std::shared_ptr<model3d>> models;
@@ -52,6 +53,7 @@ static gnut::gfx::pshader_program curr_shader;
 static gnut::gfx::pshader_program diffuse_shader;
 static gnut::gfx::pshader_program debug_shader;
 static gnut::gfx::pshader_program skybox_shader;
+static gnut::gfx::pshader_program shadow_shader;
 
 const int NUM_MODELS = 6;
 
@@ -113,6 +115,7 @@ static void cursor_callback(GLFWwindow* window, double x, double y) {
         float magnitude = glm::length(position - prev_pos);
         if(magnitude > .001f) {
             mat4 rotation;
+            mat4 translate;
             float angle = glm::acos(glm::dot(position, prev_pos) / (glm::length(position) * glm::length(prev_pos)));
             vec3 rotation_axis = glm::cross(prev_pos, position);
             curr_model->model = glm::rotate(rotation, angle, rotation_axis) * curr_model->model;
@@ -186,10 +189,13 @@ int main(int argc, char* argv[]) {
     glDepthFunc(GL_LEQUAL);
 
     main_skybox = make_shared<gfx::skybox>();
-    main_skybox->load(skybox_images);
+     main_skybox->load(skybox_images);
 
-    eye_position = glm::vec3(0,0,0);
-    view = glm::lookAt(eye_position, vec3(1,0,-1), glm::normalize(vec3(0,1,0)));
+    main_ground = make_shared<gfx::ground>();
+    main_ground->texture("res/images/grass_texture242.jpg");
+
+    eye_position = glm::vec3(0,1,5);
+    view = glm::lookAt(eye_position, vec3(0,0,0), glm::normalize(vec3(0,1,0)));
     projection = glm::perspective(45.f, static_cast<float>(window_width) / static_cast<float>(window_height), .1f, 1000.f);
 
     diffuse_shader = make_shared<gnut::gfx::shader_program>();
@@ -202,8 +208,8 @@ int main(int argc, char* argv[]) {
     diffuse_shader->link_program();
     diffuse_shader->uniform("ambient_intensity", .2f);
     diffuse_shader->uniform("light_color", glm::vec3(.8, .8, .8));
-    diffuse_shader->uniform("light_position", glm::vec3(0, 0, 40));
-    diffuse_shader->uniform("fragment_color", glm::vec3(.4f, 0.2f, .4f));
+    diffuse_shader->uniform("light_direction", glm::vec4(0, 0, -1, 0));
+    diffuse_shader->uniform("fragment_color", glm::vec3(.2f, 0.2f, .2f));
 
     gfx::shader debug_vertex(GL_VERTEX_SHADER, "res/shaders/debug.vert");
     gfx::shader debug_frag(GL_FRAGMENT_SHADER, "res/shaders/debug.frag");
@@ -214,7 +220,7 @@ int main(int argc, char* argv[]) {
     debug_shader->link_program();
     debug_shader->uniform("ambient_intensity", .2f);
     debug_shader->uniform("light_color", glm::vec3(.8,.8,.8));
-    debug_shader->uniform("light_position", glm::vec3(0,0, 40));
+    debug_shader->uniform("light_direction", glm::vec4(0,0,-1,0));
 
     gfx::shader skybox_vertex(GL_VERTEX_SHADER, "res/shaders/skybox.vert");
     gfx::shader skybox_frag(GL_FRAGMENT_SHADER, "res/shaders/skybox.frag");
@@ -224,6 +230,18 @@ int main(int argc, char* argv[]) {
     skybox_shader->attach(skybox_frag);
     skybox_shader->link_program();
 
+    gfx::shader shadow_vertex(GL_VERTEX_SHADER, "res/shaders/shadow_map.vert");
+    gfx::shader shadow_frag(GL_FRAGMENT_SHADER, "res/shaders/shadow_map.frag");
+    shadow_shader = make_shared<gfx::shader_program>();
+
+    shadow_shader->attach(shadow_vertex);
+    shadow_shader->attach(shadow_frag);
+    shadow_shader->link_program();
+
+    shadow_shader->uniform("texture_sampler", 1);
+    shadow_shader->uniform("ambient_intensity", .2f);
+    shadow_shader->uniform("light_color", glm::vec3(1,1,1));
+    shadow_shader->uniform("light_direction", glm::vec4(1, -1, -1, 0));
 
     std::string file;
     for(int i = 0; i < NUM_MODELS; ++i) {
@@ -232,12 +250,14 @@ int main(int argc, char* argv[]) {
         file += std::string(model_files[i]);
         m->mesh = gfx::mesh_loader::load(file);
         float scale = glm::length(eye_position) / m->mesh->max_vertice() / 3.f;
+        float miny = m->mesh->min().y;
         m->model = glm::scale(m->model, glm::vec3(scale, scale, scale));
+        m->model = glm::translate(m->model, glm::vec3(0,-miny,0));
         m->mesh->generate_buffer();
         models.push_back(m);
     }
 
-    curr_model = models[0];
+    curr_model = models[5];
     curr_shader = diffuse_shader;
 
     // main loop
@@ -253,12 +273,20 @@ int main(int argc, char* argv[]) {
         main_skybox->draw();
         skybox_shader->disable();
 
+        shadow_shader->uniform("model", main_ground->model_matrix());
+        shadow_shader->uniform("view", view);
+        shadow_shader->uniform("projection", projection);
+        shadow_shader->enable();
+        main_ground->draw(shadow_shader);
+        shadow_shader->disable();
+
         curr_shader->uniform("model", curr_model->model);
         curr_shader->uniform("view", view);
         curr_shader->uniform("projection", projection);
         curr_shader->enable();
         curr_model->mesh->draw();
         curr_shader->disable();
+
 
         glfwSwapBuffers(main_window);
     }

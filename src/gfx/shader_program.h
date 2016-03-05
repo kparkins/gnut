@@ -44,8 +44,10 @@ namespace gnut {
             GLuint id();
 
             void uniform(const string & uniform, const mat4 & matrix);
+            void uniform(const string & uniform, const vec4 & vector);
             void uniform(const string & uniform, const vec3 & vector);
             void uniform(const string & uniform, float value);
+            void uniform(const string & uniform, int value);
 
         private:
 
@@ -54,7 +56,7 @@ namespace gnut {
             GLuint m_id;
             vector<GLuint> m_shaders;
 
-            unordered_map<string, GLuint> m_uniforms;
+            unordered_map<string, GLint> m_uniforms;
 
 
         };

@@ -94,11 +94,29 @@ void gnut::gfx::shader_program::uniform(const string & uniform, const vec3 & vec
     }
     GLint location = glGetUniformLocation(m_id, uniform.c_str());
     if(location == -1) {
-        LOG_ERROR("Unable to locate uniform -- " << uniform << " on shader program with id -- " << m_id);
+        LOG_ERROR("Unable to locate uniform 0-- " << uniform << " on shader program with id -- " << m_id);
         glUseProgram(0);
         return;
     }
     glUniform3fv(location, 1, glm::value_ptr(vector));
+    m_uniforms[uniform] = location;
+    glUseProgram(0);
+}
+
+void gnut::gfx::shader_program::uniform(const string & uniform, const vec4 & vector) {
+    glUseProgram(m_id);
+    if(m_uniforms.find(uniform) != m_uniforms.end()) {
+        glUniform4fv(m_uniforms[uniform], 1, glm::value_ptr(vector));
+        glUseProgram(0);
+        return;
+    }
+    GLint location = glGetUniformLocation(m_id, uniform.c_str());
+    if(location == -1) {
+        LOG_ERROR("Unable to locate uniform 1 -- " << uniform << " on shader program with id -- " << m_id);
+        glUseProgram(0);
+        return;
+    }
+    glUniform4fv(location, 1, glm::value_ptr(vector));
     m_uniforms[uniform] = location;
     glUseProgram(0);
 }
@@ -117,6 +135,24 @@ void gnut::gfx::shader_program::uniform(const string & uniform, float value) {
         return;
     }
     glUniform1f(location, value);
+    m_uniforms[uniform] = location;
+    glUseProgram(0);
+
+}
+void gnut::gfx::shader_program::uniform(const string & uniform, int value) {
+    glUseProgram(m_id);
+    if(m_uniforms.find(uniform) != m_uniforms.end()) {
+        glUniform1i(m_uniforms[uniform], value);
+        glUseProgram(0);
+        return;
+    }
+    GLint location = glGetUniformLocation(m_id, uniform.c_str());
+    if(location == -1) {
+        LOG_ERROR("Unable to locate uniform -- " << uniform << " on shader program with id -- " << m_id);
+        glUseProgram(0);
+        return;
+    }
+    glUniform1i(location, value);
     m_uniforms[uniform] = location;
     glUseProgram(0);
 }

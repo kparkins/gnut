@@ -220,3 +220,4 @@ glm::vec3 gnut::gfx::mesh::max() {
 glm::vec3 gnut::gfx::mesh::min() {
     return m_min;
 }
+

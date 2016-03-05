@@ -32,10 +32,8 @@ void gnut::gfx::skybox::load(std::vector<std::string> & images) {
     for (GLuint i = 0; i < 6; ++i) {
         image = SOIL_load_image(images[i].c_str(), &width, &height, 0, SOIL_LOAD_RGB);
 
-        glTexImage2D(
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image
-        );
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
         SOIL_free_image_data(image);
     }
 
