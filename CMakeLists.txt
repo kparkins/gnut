@@ -48,6 +48,7 @@ endif(WIN32)
 if(APPLE)
 target_link_libraries(${PROJECT_NAME}
       ${GLFW3_LIBRARY}
+      libSOIL.a
       ${OPENGL_LIBRARIES}
       ${GLEW_LIBRARY}
       ${COCOA_LIBRARY}
