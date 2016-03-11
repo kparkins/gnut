@@ -1,7 +1,7 @@
 #version 330 core
 
 uniform vec3 light_color;
-uniform vec4 light_direction;
+uniform vec3 light_position;
 uniform float ambient_intensity;
 
 uniform sampler2D texture_sampler;
@@ -17,11 +17,7 @@ void main() {
     vec3 ambient = ambient_intensity * fragment_color;
 
     float diffuse_intensity;
-    if(light_direction.w == 0) {
-        diffuse_intensity = dot(normalize(fragment_normal), normalize(-vec3(light_direction)));
-    } else {
-        diffuse_intensity = dot(normalize(fragment_normal), normalize(vec3(light_direction) - fragment_position));
-    }
+    diffuse_intensity = dot(normalize(fragment_normal), normalize(vec3(light_position) - fragment_position));
     diffuse_intensity = max(diffuse_intensity,0);
 
     vec3 diffuse = diffuse_intensity * light_color;

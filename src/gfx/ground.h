@@ -22,7 +22,7 @@ namespace gnut {
 
             void texture(const std::string & image);
             glm::mat4 model_matrix();
-            void draw(pshader_program shader);
+            void draw();
 
         protected:
 

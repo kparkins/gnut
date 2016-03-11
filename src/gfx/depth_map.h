@@ -23,6 +23,10 @@ namespace gnut {
             void enable();
             void disable();
             void render();
+            pshader_program depth_shader();
+            pshader_program debug_shader();
+            void light_view(glm::mat4 lview);
+            void light_projection(glm::mat4 lproj);
             GLuint framebuffer();
             GLuint depthmap();
 
@@ -30,6 +34,9 @@ namespace gnut {
 
             pshader_program m_debugshader;
             pshader_program m_depthshader;
+
+            glm::mat4 m_lightview;
+            glm::mat4 m_lightprojection;
 
             uint32_t m_width;
             uint32_t m_height;
@@ -52,6 +59,7 @@ namespace gnut {
               1.f, -1.f, 0.f, 1.f, 0.f
             };
         };
+        typedef std::shared_ptr<gnut::gfx::depth_map> pdepth_map;
     }
 }
 

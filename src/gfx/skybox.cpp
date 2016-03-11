@@ -48,12 +48,9 @@ void gnut::gfx::skybox::load(std::vector<std::string> & images) {
 }
 
 void gnut::gfx::skybox::draw() {
-    GLint curr_shader;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &curr_shader);
     glDepthMask(GL_FALSE);
     glBindVertexArray(m_vao);
     glActiveTexture(GL_TEXTURE0);
-    glUniform1i(glGetUniformLocation(curr_shader, "skybox_sampler"), 0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);

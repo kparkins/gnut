@@ -52,7 +52,7 @@ glm::mat4 gnut::gfx::ground::model_matrix() {
     return m_model;
 }
 
-void gnut::gfx::ground::draw(gnut::gfx::pshader_program shader) {
+void gnut::gfx::ground::draw() {
     assert(m_textured);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_texid);

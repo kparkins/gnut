@@ -31,7 +31,7 @@ gnut::gfx::depth_map::depth_map(uint32_t w, uint32_t h) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_fbo, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_dmap, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -69,28 +69,45 @@ GLuint gnut::gfx::depth_map::depthmap() {
     return m_dmap;
 }
 
+void gnut::gfx::depth_map::light_view(glm::mat4 lview) {
+    m_lightview = lview;
+}
+
+void gnut::gfx::depth_map::light_projection(glm::mat4 lproj) {
+    m_lightprojection = lproj;
+}
+
+gnut::gfx::pshader_program gnut::gfx::depth_map::depth_shader() {
+    return m_depthshader;
+}
+
+gnut::gfx::pshader_program gnut::gfx::depth_map::debug_shader() {
+    return m_debugshader;
+}
 
 void gnut::gfx::depth_map::enable() {
     glGetIntegerv(GL_VIEWPORT, viewport);
     glViewport(0, 0, m_width, m_height);
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
     glClear(GL_DEPTH_BUFFER_BIT);
-
+    m_depthshader->enable();
+    m_depthshader->uniform("light", m_lightprojection * m_lightview);
 }
 
 void gnut::gfx::depth_map::disable() {
+    m_depthshader->disable();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void gnut::gfx::depth_map::render() {
-    m_debugshader->uniform("texture_sampler",3);
     m_debugshader->enable();
+    m_debugshader->uniform("texture_sampler", 3);
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, m_dmap);
     glBindVertexArray(m_vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-    m_depthshader->disable();
+    m_debugshader->disable();
 }

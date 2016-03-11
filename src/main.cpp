@@ -18,6 +18,7 @@
 #include "logger.h"
 #include "console.h"
 #include "mesh_loader.h"
+#include "depth_map.h"
 
 using std::cout;
 using std::endl;
@@ -38,10 +39,14 @@ static bool left_click;
 static vec3 prev_pos;
 static int window_height;
 static int window_width;
+static bool render_dmap;
+static GLFWwindow* main_window;
 
 static glm::vec3 eye_position;
 static glm::mat4 projection;
 static glm::mat4 view;
+static glm::vec3 light_position;
+static glm::vec3 light_color;
 
 static int model_index;
 static std::shared_ptr<model3d> curr_model;
@@ -49,11 +54,9 @@ static std::shared_ptr<gnut::gfx::ground> main_ground;
 
 static std::shared_ptr<gfx::skybox> main_skybox;
 static vector<std::shared_ptr<model3d>> models;
-static gnut::gfx::pshader_program curr_shader;
-static gnut::gfx::pshader_program diffuse_shader;
-static gnut::gfx::pshader_program debug_shader;
 static gnut::gfx::pshader_program skybox_shader;
 static gnut::gfx::pshader_program shadow_shader;
+static gnut::gfx::pdepth_map mdepth_map;
 
 const int NUM_MODELS = 6;
 
@@ -91,7 +94,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     } else if(key == GLFW_KEY_MINUS && action == GLFW_PRESS) {
         curr_model = models[gnut::mod<int, int, int>(--model_index, NUM_MODELS)];
     } else if(key == GLFW_KEY_D && action == GLFW_PRESS) {
-        curr_shader = (curr_shader == debug_shader) ? diffuse_shader : debug_shader;
+        render_dmap = !render_dmap;
     }
 }
 
@@ -136,17 +139,47 @@ static void window_size_callback(GLFWwindow* window, int width, int height) {
 static void errorCallback(int error, const char* errorMessage) {
 }
 
-int main(int argc, char* argv[]) {
-    left_click = false;
-    window_width = 640;
-    window_height = 480;
-    model_index = 0;
+static void load_shaders() {
+    gfx::shader skybox_vertex(GL_VERTEX_SHADER, "res/shaders/skybox.vert");
+    gfx::shader skybox_frag(GL_FRAGMENT_SHADER, "res/shaders/skybox.frag");
+    skybox_shader = make_shared<gfx::shader_program>();
 
-    log::plog console = std::make_shared<log::console>();
-    logger->log_level(log::level::trace);
-    logger->add(console);
+    skybox_shader->attach(skybox_vertex);
+    skybox_shader->attach(skybox_frag);
+    skybox_shader->link_program();
 
+    gfx::shader shadow_vertex(GL_VERTEX_SHADER, "res/shaders/shadow_map.vert");
+    gfx::shader shadow_frag(GL_FRAGMENT_SHADER, "res/shaders/shadow_map.frag");
+    shadow_shader = make_shared<gfx::shader_program>();
 
+    shadow_shader->attach(shadow_vertex);
+    shadow_shader->attach(shadow_frag);
+    shadow_shader->link_program();
+
+    shadow_shader->enable();
+    shadow_shader->uniform("ambient_intensity", .2f);
+    shadow_shader->uniform("light_color", light_color);
+    shadow_shader->uniform("light_position", light_position);
+    shadow_shader->disable();
+}
+
+static void load_models() {
+    std::string file;
+    for(int i = 0; i < NUM_MODELS; ++i) {
+        std::shared_ptr<model3d> m = std::make_shared<model3d>();
+        file = "res/models/";
+        file += std::string(model_files[i]);
+        m->mesh = gfx::mesh_loader::load(file);
+        float scale = glm::length(eye_position) / m->mesh->max_vertice() / 3.f;
+        float miny = m->mesh->min().y;
+        m->model = glm::scale(m->model, glm::vec3(scale, scale, scale));
+        m->model = glm::translate(m->model, glm::vec3(0,-miny,0));
+        m->mesh->generate_buffer();
+        models.push_back(m);
+    }
+}
+
+static void setup_glcontext() {
     glfwSetErrorCallback(errorCallback);
     if(!glfwInit()) {
         exit(EXIT_FAILURE);
@@ -159,7 +192,7 @@ int main(int argc, char* argv[]) {
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow* main_window = glfwCreateWindow(window_width, window_height, "gnut", NULL, NULL);
+    main_window = glfwCreateWindow(window_width, window_height, "gnut", NULL, NULL);
 
     if(!main_window) {
         glfwTerminate();
@@ -187,9 +220,23 @@ int main(int argc, char* argv[]) {
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+}
+
+int main(int argc, char* argv[]) {
+    left_click = false;
+    render_dmap = false;
+    window_width = 640;
+    window_height = 480;
+    model_index = 0;
+
+    log::plog console = std::make_shared<log::console>();
+    logger->log_level(log::level::trace);
+    logger->add(console);
+
+    setup_glcontext();
 
     main_skybox = make_shared<gfx::skybox>();
-     main_skybox->load(skybox_images);
+    main_skybox->load(skybox_images);
 
     main_ground = make_shared<gfx::ground>();
     main_ground->texture("res/images/grass_texture242.jpg");
@@ -198,67 +245,17 @@ int main(int argc, char* argv[]) {
     view = glm::lookAt(eye_position, vec3(0,0,0), glm::normalize(vec3(0,1,0)));
     projection = glm::perspective(45.f, static_cast<float>(window_width) / static_cast<float>(window_height), .1f, 1000.f);
 
-    diffuse_shader = make_shared<gnut::gfx::shader_program>();
+    light_color = glm::vec3(.8f, .8f, .8f);
+    light_position = glm::vec3(0, 5, 0);
 
-    gfx::shader vertex(GL_VERTEX_SHADER, "res/shaders/basic_lighting.vert");
-    gfx::shader frag(GL_FRAGMENT_SHADER, "res/shaders/basic_lighting.frag");
+    mdepth_map = make_shared<gfx::depth_map>(1024, 1024);
+    mdepth_map->light_view(glm::lookAt(glm::vec3(light_position), glm::vec3(0,0,0), glm::vec3(0,0,1)));
+    mdepth_map->light_projection(glm::ortho(-10.f, 10.f, -10.f, 10.f, .01f, 20.f));
 
-    diffuse_shader->attach(vertex);
-    diffuse_shader->attach(frag);
-    diffuse_shader->link_program();
-    diffuse_shader->uniform("ambient_intensity", .2f);
-    diffuse_shader->uniform("light_color", glm::vec3(.8, .8, .8));
-    diffuse_shader->uniform("light_direction", glm::vec4(0, 0, -1, 0));
-    diffuse_shader->uniform("fragment_color", glm::vec3(.2f, 0.2f, .2f));
-
-    gfx::shader debug_vertex(GL_VERTEX_SHADER, "res/shaders/debug.vert");
-    gfx::shader debug_frag(GL_FRAGMENT_SHADER, "res/shaders/debug.frag");
-    debug_shader = make_shared<gfx::shader_program>();
-
-    debug_shader->attach(debug_vertex);
-    debug_shader->attach(debug_frag);
-    debug_shader->link_program();
-    debug_shader->uniform("ambient_intensity", .2f);
-    debug_shader->uniform("light_color", glm::vec3(.8,.8,.8));
-    debug_shader->uniform("light_direction", glm::vec4(0,0,-1,0));
-
-    gfx::shader skybox_vertex(GL_VERTEX_SHADER, "res/shaders/skybox.vert");
-    gfx::shader skybox_frag(GL_FRAGMENT_SHADER, "res/shaders/skybox.frag");
-    skybox_shader = make_shared<gfx::shader_program>();
-
-    skybox_shader->attach(skybox_vertex);
-    skybox_shader->attach(skybox_frag);
-    skybox_shader->link_program();
-
-    gfx::shader shadow_vertex(GL_VERTEX_SHADER, "res/shaders/shadow_map.vert");
-    gfx::shader shadow_frag(GL_FRAGMENT_SHADER, "res/shaders/shadow_map.frag");
-    shadow_shader = make_shared<gfx::shader_program>();
-
-    shadow_shader->attach(shadow_vertex);
-    shadow_shader->attach(shadow_frag);
-    shadow_shader->link_program();
-
-    shadow_shader->uniform("texture_sampler", 1);
-    shadow_shader->uniform("ambient_intensity", .2f);
-    shadow_shader->uniform("light_color", glm::vec3(1,1,1));
-    shadow_shader->uniform("light_direction", glm::vec4(1, -1, -1, 0));
-
-    std::string file;
-    for(int i = 0; i < NUM_MODELS; ++i) {
-        std::shared_ptr<model3d> m = std::make_shared<model3d>();
-        file = "res/models/";
-        file += std::string(model_files[i]);
-        m->mesh = gfx::mesh_loader::load(file);
-        float scale = glm::length(eye_position) / m->mesh->max_vertice() / 3.f;
-        float miny = m->mesh->min().y;
-        m->model = glm::scale(m->model, glm::vec3(scale, scale, scale));
-        m->model = glm::translate(m->model, glm::vec3(0,-miny,0));
-        m->mesh->generate_buffer();
-        models.push_back(m);
-    }
+    load_shaders();
+    load_models();
 
     curr_model = models[5];
-    curr_shader = diffuse_shader;
 
     // main loop
     while(!glfwWindowShouldClose(main_window)) {
@@ -267,26 +264,38 @@ int main(int argc, char* argv[]) {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        skybox_shader->uniform("view", glm::mat4(glm::mat3(view)));
-        skybox_shader->uniform("projection", projection);
-        skybox_shader->enable();
-        main_skybox->draw();
-        skybox_shader->disable();
+        if(render_dmap) {
+            mdepth_map->enable();
 
-        shadow_shader->uniform("model", main_ground->model_matrix());
-        shadow_shader->uniform("view", view);
-        shadow_shader->uniform("projection", projection);
-        shadow_shader->enable();
-        main_ground->draw(shadow_shader);
-        shadow_shader->disable();
+            mdepth_map->depth_shader()->uniform("model", main_ground->model_matrix());
+            main_ground->draw();
 
-        curr_shader->uniform("model", curr_model->model);
-        curr_shader->uniform("view", view);
-        curr_shader->uniform("projection", projection);
-        curr_shader->enable();
-        curr_model->mesh->draw();
-        curr_shader->disable();
+            mdepth_map->depth_shader()->uniform("model", curr_model->model);
+            curr_model->mesh->draw();
 
+            mdepth_map->disable();
+            mdepth_map->render();
+        } else {
+            skybox_shader->enable();
+            skybox_shader->uniform("skybox_sampler", 0);
+            skybox_shader->uniform("view", glm::mat4(glm::mat3(view)));
+            skybox_shader->uniform("projection", projection);
+            main_skybox->draw();
+            skybox_shader->disable();
+
+            shadow_shader->enable();
+            shadow_shader->uniform("texture_sampler", 1);
+            shadow_shader->uniform("view", view);
+            shadow_shader->uniform("projection", projection);
+
+            shadow_shader->uniform("model", main_ground->model_matrix());
+            main_ground->draw();
+
+            shadow_shader->uniform("model", curr_model->model);
+            curr_model->mesh->draw();
+
+            shadow_shader->disable();
+        }
 
         glfwSwapBuffers(main_window);
     }
