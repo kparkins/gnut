@@ -58,11 +58,11 @@ static gnut::gfx::pshader_program skybox_shader;
 static gnut::gfx::pshader_program shadow_shader;
 static gnut::gfx::pdepth_map mdepth_map;
 
-const int NUM_MODELS = 6;
+const int NUM_MODELS = 2;
 
 static const string model_files[NUM_MODELS] = {
-        "testpatch.off", "armadillo.off", "teapot.off",
-        "plane.off", "torus.off", "ico.off"
+        "cow.off", "armadillo.off"
+
 };
 
 
@@ -157,7 +157,7 @@ static void load_shaders() {
     shadow_shader->link_program();
 
     shadow_shader->enable();
-    shadow_shader->uniform("ambient_intensity", .2f);
+    shadow_shader->uniform("ambient_intensity", .4f);
     shadow_shader->uniform("light_color", light_color);
     shadow_shader->uniform("light_position", light_position);
     shadow_shader->disable();
@@ -245,17 +245,17 @@ int main(int argc, char* argv[]) {
     view = glm::lookAt(eye_position, vec3(0,0,0), glm::normalize(vec3(0,1,0)));
     projection = glm::perspective(45.f, static_cast<float>(window_width) / static_cast<float>(window_height), .1f, 1000.f);
 
-    light_color = glm::vec3(.8f, .8f, .8f);
+    light_color = glm::vec3(1.f, 1.f, 1.f);
     light_position = glm::vec3(0, 5, 0);
 
-    mdepth_map = make_shared<gfx::depth_map>(1024, 1024);
+    mdepth_map = make_shared<gfx::depth_map>(2048, 2048);
     mdepth_map->light_view(glm::lookAt(glm::vec3(light_position), glm::vec3(0,0,0), glm::vec3(0,0,1)));
-    mdepth_map->light_projection(glm::ortho(-10.f, 10.f, -10.f, 10.f, .01f, 20.f));
+    mdepth_map->light_projection(glm::ortho(-15.f, 15.f, -15.f, 15.f, .01f, 20.f));
 
     load_shaders();
     load_models();
 
-    curr_model = models[5];
+    curr_model = models[NUM_MODELS - 1];
 
     // main loop
     while(!glfwWindowShouldClose(main_window)) {
@@ -264,18 +264,18 @@ int main(int argc, char* argv[]) {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
+        mdepth_map->enable();
+        mdepth_map->depth_shader()->uniform("model", main_ground->model_matrix());
+        main_ground->draw();
+
+        mdepth_map->depth_shader()->uniform("model", curr_model->model);
+        curr_model->mesh->draw();
+        mdepth_map->disable();
+
         if(render_dmap) {
-            mdepth_map->enable();
-
-            mdepth_map->depth_shader()->uniform("model", main_ground->model_matrix());
-            main_ground->draw();
-
-            mdepth_map->depth_shader()->uniform("model", curr_model->model);
-            curr_model->mesh->draw();
-
-            mdepth_map->disable();
             mdepth_map->render();
         } else {
+            glm::mat4 smodel = glm::translate(glm::mat4(), glm::vec3(0,1,0));
             skybox_shader->enable();
             skybox_shader->uniform("skybox_sampler", 0);
             skybox_shader->uniform("view", glm::mat4(glm::mat3(view)));
@@ -284,13 +284,21 @@ int main(int argc, char* argv[]) {
             skybox_shader->disable();
 
             shadow_shader->enable();
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, main_skybox->id());
+            shadow_shader->uniform("camera_position", eye_position);
+            shadow_shader->uniform("use_texture", 1);
             shadow_shader->uniform("texture_sampler", 1);
+            shadow_shader->uniform("environment_sampler", 0);
+            shadow_shader->uniform("shadow_sampler", 3);
             shadow_shader->uniform("view", view);
             shadow_shader->uniform("projection", projection);
+            shadow_shader->uniform("light_matrix", mdepth_map->light_matrix());
 
             shadow_shader->uniform("model", main_ground->model_matrix());
             main_ground->draw();
 
+            shadow_shader->uniform("use_texture", 0);
             shadow_shader->uniform("model", curr_model->model);
             curr_model->mesh->draw();
 

@@ -27,6 +27,7 @@ namespace gnut {
             pshader_program debug_shader();
             void light_view(glm::mat4 lview);
             void light_projection(glm::mat4 lproj);
+            glm::mat4 light_matrix();
             GLuint framebuffer();
             GLuint depthmap();
 
@@ -48,6 +49,10 @@ namespace gnut {
             GLuint m_vbo;
 
             int viewport[4];
+
+            float shadow_bordercolor[4] = {
+                    1.f, 1.f, 1.f, 1.f
+            };
 
             float quad[30] = {
               -1.f, 1.f, 0.f, 0.f, 1.f,

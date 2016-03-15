@@ -30,6 +30,7 @@ gnut::gfx::depth_map::depth_map(uint32_t w, uint32_t h) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, shadow_bordercolor);
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_dmap, 0);
     glDrawBuffer(GL_NONE);
@@ -77,6 +78,10 @@ void gnut::gfx::depth_map::light_projection(glm::mat4 lproj) {
     m_lightprojection = lproj;
 }
 
+glm::mat4 gnut::gfx::depth_map::light_matrix() {
+    return m_lightprojection * m_lightview;
+}
+
 gnut::gfx::pshader_program gnut::gfx::depth_map::depth_shader() {
     return m_depthshader;
 }
@@ -90,11 +95,15 @@ void gnut::gfx::depth_map::enable() {
     glViewport(0, 0, m_width, m_height);
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
     glClear(GL_DEPTH_BUFFER_BIT);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, m_dmap);
+    glCullFace(GL_FRONT);
     m_depthshader->enable();
     m_depthshader->uniform("light", m_lightprojection * m_lightview);
 }
 
 void gnut::gfx::depth_map::disable() {
+    glCullFace(GL_BACK);
     m_depthshader->disable();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
