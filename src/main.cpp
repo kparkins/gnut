@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 #include <shader.h>
 #include <ground.h>
@@ -48,6 +49,9 @@ static glm::mat4 projection;
 static glm::mat4 view;
 static glm::vec3 light_position;
 static glm::vec3 light_color;
+static bool normal_camera;
+static bool shadow_camera;
+static int use_pcf;
 
 static int model_index;
 static std::shared_ptr<model3d> curr_model;
@@ -99,6 +103,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         render_dmap = !render_dmap;
     } else if (key == GLFW_KEY_N && action == GLFW_PRESS) {
         use_normalmap = (use_normalmap == 0) ? 1 : 0;
+    } else if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+        normal_camera = !normal_camera;
+    } else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+        shadow_camera = !shadow_camera;
+    } else if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+        use_pcf = (use_pcf == 0) ? 1 : 0;
     }
 }
 
@@ -257,7 +267,6 @@ int main(int argc, char* argv[]) {
     main_skybox->load(skybox_images);
 
     main_ground = make_shared<gfx::ground>();
-    //main_ground->texture("res/images/grass_texture242.jpg");
     main_ground->texture("res/images/tile.jpg");
     main_ground->normal_map("res/images/tile_nmap.jpg");
 
@@ -266,10 +275,14 @@ int main(int argc, char* argv[]) {
     projection = glm::perspective(45.f, static_cast<float>(window_width) / static_cast<float>(window_height), .1f, 1000.f);
 
     light_color = glm::vec3(1.f, 1.f, 1.f);
-    light_position = glm::vec3(0, 5, 0);
+    light_position = glm::vec3(-3, 5, 0);
+    glm::vec3 light_up(0,1,0);
+
+    float light_rot = glm::acos(glm::length(glm::vec3(-3,0,0)) / glm::length(light_position));
+    light_up = glm::rotate(light_up, glm::degrees(light_rot), glm::vec3(0,0,1));
 
     mdepth_map = make_shared<gfx::depth_map>(2048, 2048);
-    mdepth_map->light_view(glm::lookAt(glm::vec3(light_position), glm::vec3(0,0,0), glm::vec3(0,0,1)));
+    mdepth_map->light_view(glm::lookAt(glm::vec3(light_position), glm::vec3(0,0,0), light_up));
     mdepth_map->light_projection(glm::ortho(-5.f, 5.f, -5.f, 5.f, .01f, 20.f));
 
     load_shaders();
@@ -284,6 +297,18 @@ int main(int argc, char* argv[]) {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
+        if(normal_camera) {
+            view = glm::lookAt(eye_position, vec3(0,0,5), vec3(0,0,-1));
+        } else if (shadow_camera) {
+            glm::vec3 up(0,1,0);
+            glm::vec3 eye(0, .5, .5);
+            float rot_angle = glm::acos(glm::length(glm::vec3(0,0,eye.z)) / glm::length(eye));
+            up = glm::rotate(up, glm::degrees(rot_angle), glm::vec3(-1,0,0));
+            view = glm::lookAt(eye, glm::vec3(0,0,0), glm::normalize(up));
+        } else {
+            view = glm::lookAt(eye_position, vec3(0,0,0), glm::normalize(vec3(0,1,0)));
+        }
+
         mdepth_map->enable();
         mdepth_map->depth_shader()->uniform("model", main_ground->model_matrix());
         main_ground->draw();
@@ -295,7 +320,6 @@ int main(int argc, char* argv[]) {
         if(render_dmap) {
             mdepth_map->render();
         } else {
-            glm::mat4 smodel = glm::translate(glm::mat4(), glm::vec3(0,1,0));
             skybox_shader->enable();
             skybox_shader->uniform("skybox_sampler", 0);
             skybox_shader->uniform("view", glm::mat4(glm::mat3(view)));
@@ -310,6 +334,7 @@ int main(int argc, char* argv[]) {
             shadow_shader->uniform("texture_sampler", 1);
             shadow_shader->uniform("environment_sampler", 0);
             shadow_shader->uniform("shadow_sampler", 3);
+            shadow_shader->uniform("use_pcf", use_pcf);
             shadow_shader->uniform("view", view);
             shadow_shader->uniform("projection", projection);
             shadow_shader->uniform("light_matrix", mdepth_map->light_matrix());
@@ -324,6 +349,7 @@ int main(int argc, char* argv[]) {
             normal_shader->uniform("texture_sampler", 1);
             normal_shader->uniform("shadow_sampler", 3);
             normal_shader->uniform("normal_sampler", 4);
+            normal_shader->uniform("use_pcf", use_pcf);
             normal_shader->uniform("view", view);
             normal_shader->uniform("projection", projection);
             normal_shader->uniform("light_matrix", mdepth_map->light_matrix());

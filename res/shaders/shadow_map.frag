@@ -5,6 +5,7 @@ uniform vec3 light_position;
 uniform vec3 camera_position;
 uniform float ambient_intensity;
 
+uniform bool use_pcf;
 uniform bool use_texture;
 uniform sampler2D texture_sampler;
 uniform sampler2D shadow_sampler;
@@ -37,12 +38,23 @@ void main() {
     float frag_nearest = texture(shadow_sampler, frag_depthcoords.xy).r;
     float frag_current = frag_depthcoords.z;
 
+    float shadow_contribution = 0.0;
     float shadow_bias = max(0.04 * (1.0 - light_angle), .005);
-    float shadow_contribution;
-    if(frag_nearest < frag_current - shadow_bias && frag_current <= 1.0) {
-        shadow_contribution = .5;
-    } else {
-        shadow_contribution = 0.0;
+    if(use_pcf) {
+        vec2 offset;
+        vec2 step = 1.0 / textureSize(shadow_sampler, 0);
+        for(int i = -2; i <= 2; ++i) {
+            for(int j = -2; j <= 2; ++j) {
+                offset = vec2(i,j) * step;
+                float d = texture(shadow_sampler, frag_depthcoords.xy + offset).r;
+                if(d < frag_current - shadow_bias  && frag_current <= 1.0) {
+                    shadow_contribution += 0.5;
+                }
+            }
+        }
+        shadow_contribution /= 25.0;
+    } else if(frag_nearest < frag_current - shadow_bias && frag_current <= 1.0) {
+        shadow_contribution = 0.5;
     }
 
 
