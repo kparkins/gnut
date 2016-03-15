@@ -239,7 +239,8 @@ int main(int argc, char* argv[]) {
     main_skybox->load(skybox_images);
 
     main_ground = make_shared<gfx::ground>();
-    main_ground->texture("res/images/grass_texture242.jpg");
+    //main_ground->texture("res/images/grass_texture242.jpg");
+    main_ground->texture("res/images/tile.jpg");
 
     eye_position = glm::vec3(0,1,5);
     view = glm::lookAt(eye_position, vec3(0,0,0), glm::normalize(vec3(0,1,0)));
