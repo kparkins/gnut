@@ -18,6 +18,12 @@ in mat3 tbn;
 
 out vec4 final_color;
 
+float kernel[25] = float[](1, 4, 7, 5, 1,
+                      4, 16, 26, 16, 4,
+                      7, 26, 41, 26, 7,
+                      4, 16, 26, 16, 4,
+                      1, 4, 7, 4, 1);
+
 void main() {
 
     vec3 fragment_color = texture(texture_sampler, fragment_texcoords).rgb;
@@ -49,11 +55,12 @@ void main() {
                 offset = vec2(i,j) * step;
                 float d = texture(shadow_sampler, frag_depthcoords.xy + offset).r;
                 if(d < frag_current - shadow_bias && frag_current <= 1.0) {
-                    shadow_contribution += .5;
+                    float weight = kernel[(i + 2) * 5 + (j + 2)];
+                    shadow_contribution += .5 * weight;
                 }
             }
         }
-        shadow_contribution /= 25.0;
+        shadow_contribution /= 273.0;
     } else if(frag_nearest < frag_current - shadow_bias && frag_current <= 1.0) {
         shadow_contribution = 0.5;
     }
