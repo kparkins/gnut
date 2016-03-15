@@ -37,6 +37,7 @@ typedef struct model3d {
 
 static bool left_click;
 static vec3 prev_pos;
+static int use_normalmap;
 static int window_height;
 static int window_width;
 static bool render_dmap;
@@ -56,6 +57,7 @@ static std::shared_ptr<gfx::skybox> main_skybox;
 static vector<std::shared_ptr<model3d>> models;
 static gnut::gfx::pshader_program skybox_shader;
 static gnut::gfx::pshader_program shadow_shader;
+static gnut::gfx::pshader_program normal_shader;
 static gnut::gfx::pdepth_map mdepth_map;
 
 const int NUM_MODELS = 2;
@@ -95,6 +97,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         curr_model = models[gnut::mod<int, int, int>(--model_index, NUM_MODELS)];
     } else if(key == GLFW_KEY_D && action == GLFW_PRESS) {
         render_dmap = !render_dmap;
+    } else if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+        use_normalmap = (use_normalmap == 0) ? 1 : 0;
     }
 }
 
@@ -161,6 +165,20 @@ static void load_shaders() {
     shadow_shader->uniform("light_color", light_color);
     shadow_shader->uniform("light_position", light_position);
     shadow_shader->disable();
+
+    gfx::shader normal_vertex(GL_VERTEX_SHADER, "res/shaders/shadow_bump.vert");
+    gfx::shader normal_frag(GL_FRAGMENT_SHADER, "res/shaders/shadow_bump.frag");
+    normal_shader = make_shared<gfx::shader_program>();
+
+    normal_shader->attach(normal_vertex);
+    normal_shader->attach(normal_frag);
+    normal_shader->link_program();
+
+    normal_shader->enable();
+    normal_shader->uniform("ambient_intensity", .4f);
+    normal_shader->uniform("light_color", light_color);
+    normal_shader->uniform("light_position", light_position);
+    normal_shader->disable();
 }
 
 static void load_models() {
@@ -241,6 +259,7 @@ int main(int argc, char* argv[]) {
     main_ground = make_shared<gfx::ground>();
     //main_ground->texture("res/images/grass_texture242.jpg");
     main_ground->texture("res/images/tile.jpg");
+    main_ground->normal_map("res/images/tile_nmap.jpg");
 
     eye_position = glm::vec3(0,1,5);
     view = glm::lookAt(eye_position, vec3(0,0,0), glm::normalize(vec3(0,1,0)));
@@ -288,22 +307,31 @@ int main(int argc, char* argv[]) {
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_CUBE_MAP, main_skybox->id());
             shadow_shader->uniform("camera_position", eye_position);
-            shadow_shader->uniform("use_texture", 1);
             shadow_shader->uniform("texture_sampler", 1);
             shadow_shader->uniform("environment_sampler", 0);
             shadow_shader->uniform("shadow_sampler", 3);
             shadow_shader->uniform("view", view);
             shadow_shader->uniform("projection", projection);
             shadow_shader->uniform("light_matrix", mdepth_map->light_matrix());
-
-            shadow_shader->uniform("model", main_ground->model_matrix());
-            main_ground->draw();
-
             shadow_shader->uniform("use_texture", 0);
             shadow_shader->uniform("model", curr_model->model);
             curr_model->mesh->draw();
 
             shadow_shader->disable();
+
+            normal_shader->enable();
+            normal_shader->uniform("use_normal_map", use_normalmap);
+            normal_shader->uniform("texture_sampler", 1);
+            normal_shader->uniform("shadow_sampler", 3);
+            normal_shader->uniform("normal_sampler", 4);
+            normal_shader->uniform("view", view);
+            normal_shader->uniform("projection", projection);
+            normal_shader->uniform("light_matrix", mdepth_map->light_matrix());
+
+            normal_shader->uniform("model", main_ground->model_matrix());
+            main_ground->draw();
+            normal_shader->disable();
+
         }
 
         glfwSwapBuffers(main_window);
