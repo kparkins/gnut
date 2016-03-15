@@ -64,15 +64,13 @@ static gnut::gfx::pshader_program shadow_shader;
 static gnut::gfx::pshader_program normal_shader;
 static gnut::gfx::pdepth_map mdepth_map;
 
-const int NUM_MODELS = 2;
+const int NUM_MODELS = 3;
 
 static const string model_files[NUM_MODELS] = {
-        "cow.off", "armadillo.off"
-
+        "cow.off", "armadillo.off",  "turtle.off"
 };
 
 
-static const string skybox_folder = "res/images/";
 static vector<string> skybox_images = {
         "res/images/right.jpg", "res/images/left.jpg", "res/images/top.jpg",
         "res/images/bottom.jpg", "res/images/back.jpg", "res/images/front.jpg"

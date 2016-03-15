@@ -40,7 +40,7 @@ void main() {
     float frag_current = frag_depthcoords.z;
 
     float shadow_contribution = 0.0;
-    float shadow_bias = max(0.04 * (1.0 - light_angle), .005);
+    float shadow_bias = max(0.02 * (1.0 - abs(light_angle)), .005);
     if(use_pcf) {
         vec2 offset;
         vec2 step = 1.0 / textureSize(shadow_sampler, 0);
@@ -49,7 +49,7 @@ void main() {
                 offset = vec2(i,j) * step;
                 float d = texture(shadow_sampler, frag_depthcoords.xy + offset).r;
                 if(d < frag_current - shadow_bias && frag_current <= 1.0) {
-                    shadow_contribution += 0.5;
+                    shadow_contribution += .5;
                 }
             }
         }
