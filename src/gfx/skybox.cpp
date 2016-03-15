@@ -22,7 +22,6 @@ GLuint gnut::gfx::skybox::id() {
 }
 
 void gnut::gfx::skybox::load(std::vector<std::string> & images) {
-
     glGenTextures(1, &m_id);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
@@ -44,7 +43,6 @@ void gnut::gfx::skybox::load(std::vector<std::string> & images) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
 }
 
 void gnut::gfx::skybox::draw() {

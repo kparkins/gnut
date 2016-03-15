@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
 
     mdepth_map = make_shared<gfx::depth_map>(2048, 2048);
     mdepth_map->light_view(glm::lookAt(glm::vec3(light_position), glm::vec3(0,0,0), glm::vec3(0,0,1)));
-    mdepth_map->light_projection(glm::ortho(-15.f, 15.f, -15.f, 15.f, .01f, 20.f));
+    mdepth_map->light_projection(glm::ortho(-5.f, 5.f, -5.f, 5.f, .01f, 20.f));
 
     load_shaders();
     load_models();

@@ -24,9 +24,8 @@ void main() {
 
     vec3 normal;
     if(use_normal_map) {
-        normal = texture(normal_sampler, fragment_texcoords).rgb;
-        normal = normalize(normal * 2.0 - 1.0);
-        normal = normalize(tbn * normal);
+        normal = texture(normal_sampler, fragment_texcoords).rgb * 2.0 - 1.0;
+        normal = normalize(tbn * normalize(normal));
     } else {
         normal = fragment_normal;
     }
