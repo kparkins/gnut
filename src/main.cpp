@@ -49,6 +49,7 @@ static glm::mat4 projection;
 static glm::mat4 view;
 static glm::vec3 light_position;
 static glm::vec3 light_color;
+static bool shader_demo;
 static bool normal_camera;
 static bool shadow_camera;
 static int use_pcf;
@@ -107,6 +108,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         shadow_camera = !shadow_camera;
     } else if (key == GLFW_KEY_P && action == GLFW_PRESS) {
         use_pcf = (use_pcf == 0) ? 1 : 0;
+    } else if(key == GLFW_KEY_S && action == GLFW_PRESS) {
+        shader_demo = !shader_demo;
     }
 }
 
@@ -279,7 +282,7 @@ int main(int argc, char* argv[]) {
     float light_rot = glm::acos(glm::length(glm::vec3(-3,0,0)) / glm::length(light_position));
     light_up = glm::rotate(light_up, glm::degrees(light_rot), glm::vec3(0,0,1));
 
-    mdepth_map = make_shared<gfx::depth_map>(2048, 2048);
+    mdepth_map = make_shared<gfx::depth_map>(1024, 1024);
     mdepth_map->light_view(glm::lookAt(glm::vec3(light_position), glm::vec3(0,0,0), light_up));
     mdepth_map->light_projection(glm::ortho(-5.f, 5.f, -5.f, 5.f, .01f, 20.f));
 
@@ -336,7 +339,14 @@ int main(int argc, char* argv[]) {
             shadow_shader->uniform("view", view);
             shadow_shader->uniform("projection", projection);
             shadow_shader->uniform("light_matrix", mdepth_map->light_matrix());
-            shadow_shader->uniform("use_texture", 0);
+            if(shader_demo) {
+                shadow_shader->uniform("shader_demo", 1);
+                shadow_shader->uniform("use_texture", 1);
+                shadow_shader->uniform("sin_time", static_cast<float>(glm::sin(glfwGetTime())));
+            } else {
+                shadow_shader->uniform("shader_demo", 0);
+                shadow_shader->uniform("use_texture", 0);
+            }
             shadow_shader->uniform("model", curr_model->model);
             curr_model->mesh->draw();
 

@@ -5,6 +5,8 @@ uniform vec3 light_position;
 uniform vec3 camera_position;
 uniform float ambient_intensity;
 
+uniform float sin_time;
+uniform bool shader_demo;
 uniform bool use_pcf;
 uniform bool use_texture;
 uniform sampler2D texture_sampler;
@@ -30,6 +32,13 @@ void main() {
     if(!use_texture) {
         vec3 rvec = reflect(normalize(fragment_position - camera_position), normalize(fragment_normal));
         fragment_color = texture(environment_sampler, rvec).rgb;
+    } else if(shader_demo){
+        float time = ((sin_time + 1) / 2.0);
+        vec3 rgb = ((normalize(fragment_normal) + 1.0) / 2.0);
+        rgb.x += (1.0 - rgb.x - rgb.x) * time;
+        rgb.y += (1.0 - rgb.y - rgb.y) * time;
+        rgb.z += (1.0 - rgb.z - rgb.z) * time;
+        fragment_color = rgb;
     } else {
         fragment_color = texture(texture_sampler, fragment_texcoords).rgb;
     }
