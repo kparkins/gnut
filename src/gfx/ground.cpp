@@ -53,16 +53,16 @@ void gnut::gfx::ground::build_buffer() {
     vec2 duv0 = t1 - t0;
     vec2 duv1 = t2 - t0;
 
-    float f = 1.f / (duv0.x * duv1.y - duv1.x * duv0.y);
+    float c = 1.f / (duv0.x * duv1.y - duv1.x * duv0.y);
 
-    tan0.x = f * (duv1.y * e0.x - duv0.y * e1.x);
-    tan0.y = f * (duv1.y * e0.y - duv0.y * e1.y);
-    tan0.z = f * (duv1.y * e0.z - duv0.y * e1.z);
+    tan0.x = c * (duv1.y * e0.x - duv0.y * e1.x);
+    tan0.y = c * (duv1.y * e0.y - duv0.y * e1.y);
+    tan0.z = c * (duv1.y * e0.z - duv0.y * e1.z);
     tan0 = normalize(tan0);
 
-    bit0.x = f * (-duv1.x * e0.x - duv0.x * e1.x);
-    bit0.y = f * (-duv1.x * e0.y - duv0.x * e1.y);
-    bit0.z = f * (-duv1.x * e0.z - duv0.x * e1.z);
+    bit0.x = c * (-duv1.x * e0.x - duv0.x * e1.x);
+    bit0.y = c * (-duv1.x * e0.y - duv0.x * e1.y);
+    bit0.z = c * (-duv1.x * e0.z - duv0.x * e1.z);
     bit0 = normalize(bit0);
 
     e0 = v3 - v0;
@@ -71,16 +71,16 @@ void gnut::gfx::ground::build_buffer() {
     duv0 = t3 - t0;
     duv1 = t1 - t0;
 
-    f = 1.f / (duv0.x * duv1.y - duv1.x * duv0.y);
+    c = 1.f / (duv0.x * duv1.y - duv1.x * duv0.y);
 
-    tan1.x = f * (duv1.y * e0.x - duv0.y * e1.x);
-    tan1.y = f * (duv1.y * e0.y - duv0.y * e1.y);
-    tan1.z = f * (duv1.y * e0.z - duv0.y * e1.z);
+    tan1.x = c * (duv1.y * e0.x - duv0.y * e1.x);
+    tan1.y = c * (duv1.y * e0.y - duv0.y * e1.y);
+    tan1.z = c * (duv1.y * e0.z - duv0.y * e1.z);
     tan1 = normalize(tan0);
 
-    bit1.x = f * (-duv1.x * e0.x - duv0.x * e1.x);
-    bit1.y = f * (-duv1.x * e0.y - duv0.x * e1.y);
-    bit1.z = f * (-duv1.x * e0.z - duv0.x * e1.z);
+    bit1.x = c * (-duv1.x * e0.x - duv0.x * e1.x);
+    bit1.y = c * (-duv1.x * e0.y - duv0.x * e1.y);
+    bit1.z = c * (-duv1.x * e0.z - duv0.x * e1.z);
     bit1 = normalize(bit0);
 
     for(int i = 0; i < 24; i += 8) {
